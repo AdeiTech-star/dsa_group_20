@@ -4,7 +4,7 @@ An emergency dispatch simulation for Kigali, Rwanda, built entirely in C++ with 
 
 ## Overview
 
-Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912), and fire brigade (111) services across a hilly, rapidly growing city of 1.7M+ residents. This project simulates that coordination using seven from-scratch data structures — weighted graph, min-heap, hash table, AVL tree, segment tree, Union-Find, and trie 
+Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912), and fire brigade (111) services across a hilly, rapidly growing city of 1.7M+ residents. This project simulates that coordination using seven from-scratch data structures — weighted graph, min-heap, hash table, AVL tree, segment tree, Union-Find, and trie.
 
 ### Core Capabilities
 
@@ -15,7 +15,6 @@ Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912)
 - **Prefix search** — trie-based autocomplete for unit and intersection names
 
 ## Project Structure
-> _To be updated_
 ```
 .
 ├── src/
@@ -28,6 +27,15 @@ Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912)
 │   ├── segment_tree.cpp/.h
 │   ├── union_find.cpp/.h
 │   └── trie.cpp/.h
+├── tests/
+│   ├── test_graph.cpp
+│   ├── test_min_heap.cpp
+│   ├── test_hash_table.cpp
+│   ├── test_avl_tree.cpp
+│   ├── test_segment_tree.cpp
+│   ├── test_union_find.cpp
+│   ├── test_trie.cpp
+│   └── test_dispatcher.cpp
 ├── data/
 │   └── kigali_map.txt
 ├── docs/
@@ -39,7 +47,6 @@ Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912)
 ## Building
 
 > _To be updated once the build system is finalized._
-
 ```bash
 make
 ```
@@ -47,9 +54,15 @@ make
 ## Running
 
 > _To be updated with full usage instructions._
-
 ```bash
 ./urban_irs
+```
+
+## Testing
+
+> _To be updated once the test harness is finalized._
+```bash
+make test
 ```
 
 ## Team
