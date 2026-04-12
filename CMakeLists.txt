@@ -14,6 +14,6 @@ add_executable(DSA_GROUP_20
     src/dispatcher.cpp
     
 )
--Wall -Werror -Wextra
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g ")
 target_link_libraries(DSA_GROUP_20)

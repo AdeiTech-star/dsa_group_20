@@ -17,29 +17,42 @@ Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912)
 ## Project Structure
 ```
 .
+urban-irs/
+├── include/
+│   ├── hash_table.h
+│   ├── graph.h
+│   ├── union_find.h
+│   ├── min_heap.h
+│   ├── avl_tree.h
+│   ├── segment_tree.h
+│   ├── trie.h
+│   └── dispatcher.h
 ├── src/
-│   ├── main.cpp
-│   ├── dispatcher.cpp/.h
-│   ├── graph.cpp/.h
-│   ├── min_heap.cpp/.h
-│   ├── hash_table.cpp/.h
-│   ├── avl_tree.cpp/.h
-│   ├── segment_tree.cpp/.h
-│   ├── union_find.cpp/.h
-│   └── trie.cpp/.h
+│   ├── hash_table.cpp
+│   ├── graph.cpp
+│   ├── union_find.cpp
+│   ├── min_heap.cpp
+│   ├── avl_tree.cpp
+│   ├── segment_tree.cpp
+│   ├── trie.cpp
+│   ├── dispatcher.cpp
+│   └── main.cpp
 ├── tests/
-│   ├── test_graph.cpp
-│   ├── test_min_heap.cpp
 │   ├── test_hash_table.cpp
+│   ├── test_graph.cpp
+│   ├── test_union_find.cpp
+│   ├── test_min_heap.cpp
 │   ├── test_avl_tree.cpp
 │   ├── test_segment_tree.cpp
-│   ├── test_union_find.cpp
 │   ├── test_trie.cpp
 │   └── test_dispatcher.cpp
 ├── data/
 │   └── kigali_map.txt
 ├── docs/
 │   └── proposal.pdf
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── Makefile
 └── README.md
 ```
