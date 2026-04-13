@@ -1,7 +1,7 @@
 #include "hash_table.h"
 #include <iostream>
 
-// ── Print helpers (no iostream) ───────────────────────────────────────────────
+// Print helpers (no iostream) 
 static void printStr(const char* s) {
     while (*s) putchar(*s++);
 }
@@ -17,7 +17,7 @@ static void printLine(const char* s) {
     putchar('\n');
 }
 
-// ── Test reporter ─────────────────────────────────────────────────────────────
+// Test reporter
 static int passed = 0;
 static int failed = 0;
 
@@ -32,7 +32,7 @@ static void check(const char* name, bool result) {
     printLine(name);
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// Tests
 void testInsertAndLookup() {
     HashTable ht(11);
     ht.insert(1, 100);
@@ -117,7 +117,7 @@ void testLoadFactor() {
     check("load increases after insert", ht.load() > 0.0f);
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// Main
 int main() {
     printLine("=== Hash Table Tests ===\n");
 

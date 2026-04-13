@@ -1,16 +1,16 @@
 #include "hash_table.h"
 
-// ── Constructor ───────────────────────────────────────────────────────────────
+// Constructor 
 HashTable::HashTable(int cap) : capacity(cap), count(0) {
     table = new Slot[capacity];
 }
 
-// ── Destructor ────────────────────────────────────────────────────────────────
+// Destructor 
 HashTable::~HashTable() {
     delete[] table;
 }
 
-// ── Hash functions ────────────────────────────────────────────────────────────
+// Hash functions 
 int HashTable::h1(int key) const {
     // Handle negative keys safely
     return ((key % capacity) + capacity) % capacity;
@@ -26,7 +26,7 @@ int HashTable::probe(int key, int i) const {
     return (h1(key) + i * h2(key)) % capacity;
 }
 
-// ── Insert ────────────────────────────────────────────────────────────────────
+// Insert 
 bool HashTable::insert(int key, int value) {
     // Resize before inserting if load is too high
     if (load() > 0.7f) resize();
@@ -53,7 +53,7 @@ bool HashTable::insert(int key, int value) {
     return false;   // table is full (should not happen with resize)
 }
 
-// ── Lookup ────────────────────────────────────────────────────────────────────
+// Lookup 
 int* HashTable::lookup(int key) {
     for (int i = 0; i < capacity; i++) {
         int s = probe(key, i);
@@ -70,7 +70,7 @@ int* HashTable::lookup(int key) {
     return nullptr;
 }
 
-// ── Remove ────────────────────────────────────────────────────────────────────
+// Remove
 bool HashTable::remove(int key) {
     for (int i = 0; i < capacity; i++) {
         int s = probe(key, i);
@@ -88,7 +88,7 @@ bool HashTable::remove(int key) {
     return false;
 }
 
-// ── Size / load ───────────────────────────────────────────────────────────────
+// Size / load 
 int HashTable::size() const {
     return count;
 }
@@ -97,7 +97,7 @@ float HashTable::load() const {
     return (float)count / (float)capacity;
 }
 
-// ── Resize ────────────────────────────────────────────────────────────────────
+// Resize
 void HashTable::resize() {
     int   oldCapacity = capacity;
     Slot* oldTable    = table;
@@ -115,7 +115,7 @@ void HashTable::resize() {
     delete[] oldTable;
 }
 
-// ── Next prime ────────────────────────────────────────────────────────────────
+// Next prime 
 int HashTable::nextPrime(int n) const {
     while (true) {
         bool prime = true;
