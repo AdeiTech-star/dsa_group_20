@@ -33,7 +33,7 @@ bool addVertex(Graph& g, int id){
     return true;
 }
 
-// ========================== EDGES ==========================
+//   EDGES  
 
 static void addDirectedEdge(Graph& g, int srcId, int destId, int weight){
     neighbourNode* newNode  = new neighbourNode();
@@ -76,25 +76,25 @@ bool addEdge(Graph& g, int srcId, int destId, int weight, bool directed){
     return true;
 }
 
-// ── NEW: updateEdgeWeight ──────────────────────────────────────────────────
+//   NEW: updateEdgeWeight                          
 // Roads change — construction, traffic, time of day.
 // Walks the list and updates the weight in-place. No remove + re-add needed.
 // For undirected edges, both directions are updated.
 bool updateEdgeWeight(Graph& g, int srcID, int destID, int newWeight, bool directed){
 
-    // ── Guard: both vertices must exist ───────────────────────────────
+    //   Guard: both vertices must exist                ─
     if(!g.active[srcID] || !g.active[destID]){
         cout << "Error: one or both vertices do not exist.\n";
         return false;
     }
 
-    // ── Guard: weight must be positive ────────────────────────────────
+    //   Guard: weight must be positive                 
     if(newWeight <= 0){
         cout << "Error: weight must be a positive value.\n";
         return false;
     }
 
-    // ── Walk srcID's list and find destID ─────────────────────────────
+    //   Walk srcID's list and find destID               ─
     bool updated = false;
     neighbourNode* curr = g.vertices[srcID].neighbours;
 
@@ -112,7 +112,7 @@ bool updateEdgeWeight(Graph& g, int srcID, int destID, int newWeight, bool direc
         return false;
     }
 
-    // ── For undirected: mirror the update in the reverse direction ─────
+    //   For undirected: mirror the update in the reverse direction   ─
     if(!directed){
         neighbourNode* rev = g.vertices[destID].neighbours;
         while(rev != nullptr){
@@ -129,7 +129,7 @@ bool updateEdgeWeight(Graph& g, int srcID, int destID, int newWeight, bool direc
     return true;
 }
 
-// ========================== READ OPERATIONS ==========================
+//   READ OPERATIONS  
 
 void getNeighbours(Graph& g, int id){
     if(!g.active[id]){
@@ -185,14 +185,14 @@ bool isConnected(Graph& g, int srcID, int destID){
     return false;
 }
 
-// ── NEW: getVertexCount ───────────────────────────────────────────────────
+//   NEW: getVertexCount                          ─
 // Returns how many vertices are currently active.
 // The dispatcher uses this to size buffers and loop bounds.
 int getVertexCount(Graph& g){
     return g.vertexCount;
 }
 
-// ── NEW: getEdgeCount  
+//   NEW: getEdgeCount  
 // Counts edges by summing every active vertex's adjacency list length.
 // For undirected graphs each physical edge appears in TWO lists
 // (A→B and B→A), so we divide by 2 at the end.
@@ -213,7 +213,7 @@ int getEdgeCount(Graph& g, bool directed){
     return directed ? total : total / 2;
 }
 
-// ── NEW: printGraph  ──
+//   NEW: printGraph   
 // Prints the entire adjacency list — one row per active vertex.
 // Much faster to read at a glance than calling getNeighbours in a loop.
 // Example output:
@@ -251,7 +251,7 @@ void printGraph(Graph& g){
     cout << "=========================\n\n";
 }
 
-// ========================== REMOVE OPERATIONS ==========================
+//   REMOVE OPERATIONS  
 
 // Extracted helper — replaces the lambda in removeEdge.
 // Removes the node with destId == target from src's adjacency list.
@@ -331,7 +331,7 @@ bool removeVertex(Graph& g, int id){
     return true;
 }
 
-// ── NEW: destroyGraph  
+//   NEW: destroyGraph  
 // Frees every dynamically allocated neighbourNode in the graph,
 // then resets the graph back to its post-initGraph state.
 // Call this at the end of main (or whenever you're done with the graph)

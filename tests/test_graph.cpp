@@ -7,11 +7,11 @@
 #include <iostream>
 using namespace std;
 
-// ── Test counters   
+//   Test counters   
 static int passed = 0;
 static int failed = 0;
 
-// ── check()   ──────
+//   check()    
 // The only assertion you need.
 // Usage: check("edge weight is 4", getEdgeWeight(g, 0, 1) == 4);
 void check(const char* label, bool condition) {
@@ -24,7 +24,7 @@ void check(const char* label, bool condition) {
     }
 }
 
-// ── Helper: fresh graph for each test group ───────────────────────────────
+//  Helper: fresh graph for each test group  
 // Every test function calls this so state never leaks between groups.
 Graph freshGraph() {
     Graph g;
@@ -32,9 +32,9 @@ Graph freshGraph() {
     return g;
 }
 
-// =========================================================================
+ 
 // 1. Vertex operations
-// =========================================================================
+ 
 void testVertices() {
     cout << "\n-- Vertex operations --\n";
     Graph g = freshGraph();
@@ -64,9 +64,9 @@ void testVertices() {
     destroyGraph(g);
 }
 
-// =========================================================================
+ 
 // 2. Edge operations
-// =========================================================================
+ 
 void testEdges() {
     cout << "\n-- Edge operations --\n";
     Graph g = freshGraph();
@@ -116,9 +116,9 @@ void testEdges() {
     destroyGraph(g);
 }
 
-// =========================================================================
+ 
 // 3. Query operations
-// =========================================================================
+ 
 void testQueries() {
     cout << "\n-- Query operations --\n";
     Graph g = freshGraph();
@@ -158,9 +158,9 @@ void testQueries() {
     destroyGraph(g);
 }
 
-// =========================================================================
+ 
 // 4. Edge cases and guard checks
-// =========================================================================
+ 
 void testEdgeCases() {
     cout << "\n-- Edge cases --\n";
     Graph g = freshGraph();
@@ -190,9 +190,9 @@ void testEdgeCases() {
     destroyGraph(g);
 }
 
-// =========================================================================
+ 
 // Runner
-// =========================================================================
+ 
 int main() {
     cout << "========= Graph Test Suite =========\n";
 

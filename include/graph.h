@@ -6,7 +6,7 @@
 
 const int MAX_VERTICES = 100; // maximum number of intersections
 
-// ── Struct 1: one node in an adjacency linked list  ───
+//   Struct 1: one node in an adjacency linked list   ─
 // Represents a single directed edge: some vertex → destId, cost = weight
 struct neighbourNode {
     int destId;          // ID of the vertex this edge leads to
@@ -14,14 +14,14 @@ struct neighbourNode {
     neighbourNode* next; // next neighbour in the linked list (nullptr = end)
 };
 
-// ── Struct 2: one vertex (intersection) in the graph  
+//   Struct 2: one vertex (intersection) in the graph  
 // Owns the head of its own neighbour linked list
 struct intersection {
     int id;                    // unique identifier, also its index in the array
     neighbourNode* neighbours; // head of adjacency list (nullptr = no edges)
 };
 
-// ── The Graph  ────────
+//   The Graph      
 // Fixed-size array of intersections + parallel boolean array tracking
 // which slots are in use
 struct Graph {
@@ -30,27 +30,27 @@ struct Graph {
     int          vertexCount;            // how many vertices are currently active
 };
 
-// ── Setup  ────────────
+//   Setup        
 void initGraph(Graph& g);
 void destroyGraph(Graph& g);
 
-// ── Vertex operations  
+//   Vertex operations  
 bool addVertex(Graph& g, int id);
 bool removeVertex(Graph& g, int id);
 
-// ── Edge operations  ──
+//   Edge operations   
 bool addEdge(Graph& g, int srcId, int destId, int weight, bool directed = false);
 bool removeEdge(Graph& g, int srcID, int destID, bool directed = false);
 bool updateEdgeWeight(Graph& g, int srcID, int destID, int newWeight, bool directed = false);
 
-// ── Query operations  ─
+//   Query operations  ─
 void getNeighbours(Graph& g, int id);
 int  getEdgeWeight(Graph& g, int srcID, int destID);
 bool isConnected(Graph& g, int srcID, int destID);
 int  getVertexCount(Graph& g);
 int  getEdgeCount(Graph& g, bool directed = false);
 
-// ── Debug / display  ──
+//   Debug / display   
 void printGraph(Graph& g);
 
 #endif
