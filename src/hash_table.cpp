@@ -1,89 +1,80 @@
 #include "hash_table.h"
+#include <iostream>
+using namespace std;
 
 // Constructor 
 HashTable::HashTable(int cap) : capacity(cap), count(0) {
-    table = new Slot[capacity];
+    table = new ChainNode*[capacity];
+    for (int i = 0; i < capacity; i++)
+        table[i] = nullptr;
 }
 
 // Destructor 
 HashTable::~HashTable() {
+    for (int i = 0; i < capacity; i++)
+        freeChain(table[i]);
     delete[] table;
 }
 
-// Hash functions 
-int HashTable::h1(int key) const {
-    // Handle negative keys safely
+// Hash function 
+int HashTable::hash(int key) const {
     return ((key % capacity) + capacity) % capacity;
-}
-
-int HashTable::h2(int key) const {
-    // PRIME must be smaller than capacity and itself prime
-    const int PRIME = 97;
-    return PRIME - (((key % PRIME) + PRIME) % PRIME);
-}
-
-int HashTable::probe(int key, int i) const {
-    return (h1(key) + i * h2(key)) % capacity;
 }
 
 // Insert 
 bool HashTable::insert(int key, int value) {
-    // Resize before inserting if load is too high
-    if (load() > 0.7f) resize();
+    if (load() > 1.0f) resize();
 
-    for (int i = 0; i < capacity; i++) {
-        int s = probe(key, i);
+    int slot = hash(key);
 
-        // Update existing key
-        if (table[s].state == SlotState::OCCUPIED
-            && table[s].key == key) {
-            table[s].value = value;
+    ChainNode* curr = table[slot];
+    while (curr != nullptr) {
+        if (curr->key == key) {
+            curr->value = value;
             return true;
         }
-
-        // Found an empty or deleted slot — insert here
-        if (table[s].state != SlotState::OCCUPIED) {
-            table[s].key   = key;
-            table[s].value = value;
-            table[s].state = SlotState::OCCUPIED;
-            count++;
-            return true;
-        }
+        curr = curr->next;
     }
-    return false;   // table is full (should not happen with resize)
+
+    ChainNode* newNode = new ChainNode(key, value);
+    newNode->next = table[slot];
+    table[slot]   = newNode;
+    count++;
+    return true;
 }
 
 // Lookup 
 int* HashTable::lookup(int key) {
-    for (int i = 0; i < capacity; i++) {
-        int s = probe(key, i);
+    int slot = hash(key);
 
-        // EMPTY means the key was never here — stop probing
-        if (table[s].state == SlotState::EMPTY)
-            return nullptr;
-
-        // DELETED means keep probing — something may be further along
-        if (table[s].state == SlotState::OCCUPIED
-            && table[s].key == key)
-            return &table[s].value;
+    ChainNode* curr = table[slot];
+    while (curr != nullptr) {
+        if (curr->key == key)
+            return &curr->value;
+        curr = curr->next;
     }
     return nullptr;
 }
 
 // Remove
 bool HashTable::remove(int key) {
-    for (int i = 0; i < capacity; i++) {
-        int s = probe(key, i);
+    int slot = hash(key);
 
-        if (table[s].state == SlotState::EMPTY)
-            return false;   // key not in table
+    ChainNode* curr = table[slot];
+    ChainNode* prev = nullptr;
 
-        if (table[s].state == SlotState::OCCUPIED
-            && table[s].key == key) {
-            table[s].state = SlotState::DELETED;   // tombstone
+    while (curr != nullptr) {
+        if (curr->key == key) {
+            if (prev == nullptr)
+                table[slot] = curr->next;
+            else
+                prev->next = curr->next;
+            delete curr;
             count--;
             return true;
         }
+        prev = curr;
+        curr = curr->next;
     }
     return false;
 }
@@ -97,19 +88,33 @@ float HashTable::load() const {
     return (float)count / (float)capacity;
 }
 
-// Resize
+// Free a chain 
+void HashTable::freeChain(ChainNode* head) {
+    while (head != nullptr) {
+        ChainNode* tmp = head;
+        head = head->next;
+        delete tmp;
+    }
+}
+
+// Resize 
 void HashTable::resize() {
-    int   oldCapacity = capacity;
-    Slot* oldTable    = table;
+    int         oldCapacity = capacity;
+    ChainNode** oldTable    = table;
 
     capacity = nextPrime(oldCapacity * 2);
-    table    = new Slot[capacity];
-    count    = 0;
+    table    = new ChainNode*[capacity];
+    for (int i = 0; i < capacity; i++)
+        table[i] = nullptr;
+    count = 0;
 
-    // Rehash all occupied slots into the new table
     for (int i = 0; i < oldCapacity; i++) {
-        if (oldTable[i].state == SlotState::OCCUPIED)
-            insert(oldTable[i].key, oldTable[i].value);
+        ChainNode* curr = oldTable[i];
+        while (curr != nullptr) {
+            insert(curr->key, curr->value);
+            curr = curr->next;
+        }
+        freeChain(oldTable[i]);
     }
 
     delete[] oldTable;
@@ -120,10 +125,7 @@ int HashTable::nextPrime(int n) const {
     while (true) {
         bool prime = true;
         for (int i = 2; i * i <= n; i++) {
-            if (n % i == 0) {
-                prime = false;
-                break;
-            }
+            if (n % i == 0) { prime = false; break; }
         }
         if (prime) return n;
         n++;

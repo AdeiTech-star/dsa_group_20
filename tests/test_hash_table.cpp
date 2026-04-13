@@ -1,106 +1,92 @@
-#include "hash_table.h"
 #include <iostream>
+#include "hash_table.h"
 
-// Print helpers (no iostream) 
-static void printStr(const char* s) {
-    while (*s) putchar(*s++);
-}
-
-static void printInt(int n) {
-    if (n < 0) { putchar('-'); n = -n; }
-    if (n >= 10) printInt(n / 10);
-    putchar('0' + n % 10);
-}
-
-static void printLine(const char* s) {
-    printStr(s);
-    putchar('\n');
-}
-
-// Test reporter
 static int passed = 0;
 static int failed = 0;
 
-static void check(const char* name, bool result) {
+void check(const char* name, bool result) {
     if (result) {
-        printStr("[PASS] ");
+        std::cout << "[PASS] " << name << "\n";
         passed++;
     } else {
-        printStr("[FAIL] ");
+        std::cout << "[FAIL] " << name << "\n";
         failed++;
     }
-    printLine(name);
 }
 
-// Tests
-void testInsertAndLookup() {
-    HashTable ht(11);
-    ht.insert(1, 100);
-    ht.insert(2, 200);
-    ht.insert(3, 300);
+// Tests 
 
-    check("lookup existing key 1",
-          ht.lookup(1) != nullptr && *ht.lookup(1) == 100);
-    check("lookup existing key 2",
-          ht.lookup(2) != nullptr && *ht.lookup(2) == 200);
-    check("lookup non-existent key returns nullptr",
+void testInsertAndLookup() {
+    HashTable ht(7);
+    ht.insert(5,  100);
+    ht.insert(18, 200);   // collides with 5 — goes into same chain
+    ht.insert(31, 300);   // also collides — third node in chain
+
+    check("lookup key=5",
+          ht.lookup(5)  != nullptr && *ht.lookup(5)  == 100);
+    check("lookup key=18",
+          ht.lookup(18) != nullptr && *ht.lookup(18) == 200);
+    check("lookup key=31",
+          ht.lookup(31) != nullptr && *ht.lookup(31) == 300);
+    check("lookup missing key returns nullptr",
           ht.lookup(99) == nullptr);
 }
 
 void testUpdate() {
-    HashTable ht(11);
-    ht.insert(5, 50);
-    ht.insert(5, 99);   // same key — should update value
+    HashTable ht(7);
+    ht.insert(5, 100);
+    ht.insert(5, 999);   // same key — should update value in chain
 
-    check("update existing key",
-          ht.lookup(5) != nullptr && *ht.lookup(5) == 99);
-    check("update does not increase size",
+    check("update value in chain",
+          ht.lookup(5) != nullptr && *ht.lookup(5) == 999);
+    check("size stays 1 after update",
           ht.size() == 1);
 }
 
-void testTombstone() {
-    // Remove a key that other keys probed past.
-    // If the slot is marked EMPTY instead of DELETED,
-    // lookups for those other keys will falsely return nullptr.
-    HashTable ht(11);
-    ht.insert(5,  10);
-    ht.insert(16, 20);   // collision with 5 — probes past it
-    ht.remove(5);         // slot becomes tombstone, not EMPTY
-
-    check("lookup past tombstone still works",
-          ht.lookup(16) != nullptr && *ht.lookup(16) == 20);
-    check("removed key returns nullptr",
-          ht.lookup(5) == nullptr);
-}
-
 void testRemove() {
-    HashTable ht(11);
-    ht.insert(7, 77);
+    HashTable ht(7);
+    ht.insert(5,  100);
+    ht.insert(18, 200);   // same slot as 5
+    ht.insert(31, 300);   // same slot as 5 and 18
 
-    check("remove returns true for existing key",  ht.remove(7));
-    check("removed key no longer found",           ht.lookup(7) == nullptr);
-    check("size decreases after remove",           ht.size() == 0);
-    check("remove returns false for missing key",  ht.remove(99) == false);
+    // remove the middle node — no tombstone needed
+    bool removed = ht.remove(18);
+    check("remove returns true",          removed);
+    check("removed key not found",        ht.lookup(18) == nullptr);
+    check("other keys in chain intact",   ht.lookup(5)  != nullptr);
+    check("other keys in chain intact 2", ht.lookup(31) != nullptr);
+    check("size decreases",               ht.size() == 2);
 }
 
-void testResize() {
-    // Small initial capacity — 8 inserts forces a resize
+void testRemoveHead() {
     HashTable ht(7);
-    for (int i = 0; i < 8; i++)
-        ht.insert(i * 13, i);
+    ht.insert(5,  100);
+    ht.insert(18, 200);
 
-    bool allFound = true;
-    for (int i = 0; i < 8; i++) {
-        if (ht.lookup(i * 13) == nullptr || *ht.lookup(i * 13) != i) {
-            allFound = false;
-            break;
-        }
-    }
-    check("all keys reachable after resize", allFound);
+    ht.remove(18);   // 18 was prepended so it is the head
+    check("remove head of chain",
+          ht.lookup(18) == nullptr && ht.lookup(5) != nullptr);
+}
+
+void testNoDeletionBug() {
+    // This is the key test that shows chaining has NO tombstone problem.
+    // Removing a key never breaks lookup for other keys in the same chain.
+    HashTable ht(7);
+    ht.insert(5,  10);
+    ht.insert(18, 20);
+    ht.insert(31, 30);
+
+    ht.remove(5);    // remove head
+    ht.remove(31);   // remove tail
+
+    check("middle key still found after head+tail removed",
+          ht.lookup(18) != nullptr && *ht.lookup(18) == 20);
+    check("removed keys are gone",
+          ht.lookup(5) == nullptr && ht.lookup(31) == nullptr);
 }
 
 void testNegativeKeys() {
-    HashTable ht(11);
+    HashTable ht(7);
     ht.insert(-3, 42);
     ht.insert(-7, 84);
 
@@ -110,28 +96,36 @@ void testNegativeKeys() {
           ht.lookup(-7) != nullptr && *ht.lookup(-7) == 84);
 }
 
-void testLoadFactor() {
-    HashTable ht(101);
-    check("initial load is 0",       ht.load() == 0.0f);
-    ht.insert(1, 1);
-    check("load increases after insert", ht.load() > 0.0f);
+void testResize() {
+    HashTable ht(3);   // tiny table — forces resize quickly
+    for (int i = 0; i < 5; i++)
+        ht.insert(i * 7, i);
+
+    bool allFound = true;
+    for (int i = 0; i < 5; i++) {
+        if (ht.lookup(i * 7) == nullptr || *ht.lookup(i * 7) != i) {
+            allFound = false;
+            break;
+        }
+    }
+    check("all keys found after resize", allFound);
 }
 
 // Main
 int main() {
-    printLine("=== Hash Table Tests ===\n");
+    std::cout << "=== Hash Table Tests (chaining) ===\n\n";
 
     testInsertAndLookup();
     testUpdate();
-    testTombstone();
     testRemove();
-    testResize();
+    testRemoveHead();
+    testNoDeletionBug();
     testNegativeKeys();
-    testLoadFactor();
+    testResize();
 
-    printLine("\n--- Results ---");
-    printStr("Passed: "); printInt(passed); putchar('\n');
-    printStr("Failed: "); printInt(failed); putchar('\n');
+    std::cout << "\n--- Results ---\n";
+    std::cout << "Passed: " << passed << "\n";
+    std::cout << "Failed: " << failed << "\n";
 
     return failed == 0 ? 0 : 1;
 }
