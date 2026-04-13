@@ -6,10 +6,10 @@ static int failed = 0;
 
 void check(const char* name, bool result) {
     if (result) {
-        std::cout << "[PASS] " << name << "\n";
+        cout << "[PASS] " << name << "\n";
         passed++;
     } else {
-        std::cout << "[FAIL] " << name << "\n";
+        cout << "[FAIL] " << name << "\n";
         failed++;
     }
 }
@@ -113,7 +113,7 @@ void testResize() {
 
 // Main
 int main() {
-    std::cout << "=== Hash Table Tests (chaining) ===\n\n";
+    cout << "=== Hash Table Tests (chaining) ===\n\n";
 
     testInsertAndLookup();
     testUpdate();
@@ -123,9 +123,9 @@ int main() {
     testNegativeKeys();
     testResize();
 
-    std::cout << "\n--- Results ---\n";
-    std::cout << "Passed: " << passed << "\n";
-    std::cout << "Failed: " << failed << "\n";
+    cout << "\n--- Results ---\n";
+    cout << "Passed: " << passed << "\n";
+    cout << "Failed: " << failed << "\n";
 
     return failed == 0 ? 0 : 1;
 }
