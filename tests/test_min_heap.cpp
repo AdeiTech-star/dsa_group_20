@@ -4,7 +4,7 @@
 #include <ctime>
 using namespace std;
 
-// Match the style from test_graph.cpp and test_hash_table.cpp
+// variables for the pass and fail
 static int passed = 0;
 static int failed = 0;
 
@@ -18,7 +18,7 @@ void check(const char* label, bool condition) {
     }
 }
 
-// Basic insertion and extraction in priority order
+// the testing for the basic insertion and extraction in priority order
 void testBasicOperations() {
     cout << "\n-- Basic Min-Heap Operations --\n";
     MinHeap pq(10);
@@ -27,11 +27,11 @@ void testBasicOperations() {
     pq.insert(10, 101); 
     pq.insert(5, 102);  
     pq.insert(20, 103); 
-    pq.insert(1, 104);  // most urgent
+    pq.insert(1, 104);  // expected to be returned as the most urgent
     
     check("size after 4 insertions is 4", pq.size() == 4);
     
-    // Should extract in order: 1, 5, 10, 20
+    // expecting the extraction order to be 1, 5, 10, 20
     HeapNode top = pq.extractMin();
     check("first extraction has priority 1", top.priority == 1 && top.data == 104);
     
@@ -47,18 +47,18 @@ void testBasicOperations() {
     check("heap is empty after all extractions", pq.isEmpty());
 }
 
-// Simulate Dijkstra's algorithm behavior
+// testing for simulating the behavior of the dijkstra algorithm
 void testDijkstraSimulation() {
     cout << "\n-- Dijkstra Frontier Simulation --\n";
     MinHeap frontier(20);
 
-    // Add vertices with distances from source
-    frontier.insert(0, 0);   // start node
+    // adding vertices with distances from source
+    frontier.insert(0, 0);   // this represents the starting node
     frontier.insert(15, 3);  
     frontier.insert(5, 1);   
     frontier.insert(10, 2);  
 
-    // Dijkstra processes nodes in order of distance
+    // dijkstra processes nodes in order of distance
     HeapNode next = frontier.extractMin();
     check("closest node is vertex 0 at distance 0", 
           next.data == 0 && next.priority == 0);
@@ -76,44 +76,44 @@ void testDijkstraSimulation() {
           next.data == 3 && next.priority == 15);
 }
 
-// Test boundary conditions
+// testing the boundary conditions
 void testEdgeCases() {
     cout << "\n-- Edge Cases --\n";
     
     MinHeap smallHeap(3);
     
-    // Fill to capacity
+    // testing by filling to the capacity
     check("insert into empty heap succeeds", smallHeap.insert(10, 1));
     check("second insert succeeds", smallHeap.insert(20, 2));
     check("third insert succeeds", smallHeap.insert(5, 3));
     
-    // Try to overflow
+    // testing by trying the overflow 
     check("insert into full heap fails", !smallHeap.insert(15, 4));
     check("size is still 3 after failed insert", smallHeap.size() == 3);
     
-    // Empty it completely
+    // emptying the heap completely
     smallHeap.extractMin();
     smallHeap.extractMin();
     smallHeap.extractMin();
     
     check("heap is empty after removing all elements", smallHeap.isEmpty());
     
-    // Extract from empty heap
+    // testing extraction from empty heap
     HeapNode empty = smallHeap.extractMin();
     check("extracting from empty heap returns {-1, -1}", 
           empty.priority == -1 && empty.data == -1);
 }
 
-// Verify heap property holds under random insertions
+// verifying if the heap property holds under random insertions
 void testRandomizedStress() {
-    cout << "\n-- Randomized Stress Test (100 elements) --\n";
+    cout << "\n randomized stress test 100 elements\n";
     
     srand(time(0));
     
     int numElements = 100;
     MinHeap pq(numElements);
     
-    // Insert random priorities
+    // adding/inserting random priorities
     for (int i = 0; i < numElements; i++) {
         int randomPriority = rand() % 1000;
         pq.insert(randomPriority, i);
@@ -121,7 +121,7 @@ void testRandomizedStress() {
     
     check("all 100 elements inserted", pq.size() == 100);
     
-    // Extract all and verify they come out sorted
+    // extracting all and cerifying that they come out sorted
     int lastPriority = -1;
     bool inOrder = true;
     
@@ -139,7 +139,7 @@ void testRandomizedStress() {
     check("heap is empty after extracting all", pq.isEmpty());
 }
 
-// Test with duplicate priorities
+// testing with duplicated priorities
 void testDuplicatePriorities() {
     cout << "\n-- Duplicate Priorities --\n";
     MinHeap pq(10);
@@ -152,8 +152,7 @@ void testDuplicatePriorities() {
     HeapNode node = pq.extractMin();
     check("lowest priority extracted first", node.priority == 3);
     
-    // All three with priority 5 should come out next
-    // (order among same-priority items doesn't matter)
+    // expecting that the three with priority 5 should come out next
     node = pq.extractMin();
     check("first duplicate has priority 5", node.priority == 5);
     
@@ -166,9 +165,9 @@ void testDuplicatePriorities() {
 
 // Main test runner
 int main() {
-    cout << "======================================\n";
+    cout << "*************************************\n";
     cout << "   Min-Heap Test Suite               \n";
-    cout << "======================================\n";
+    cout << "*************************************\n";
 
     testBasicOperations();
     testDijkstraSimulation();
@@ -176,15 +175,15 @@ int main() {
     testRandomizedStress();
     testDuplicatePriorities();
 
-    cout << "\n======================================\n";
+    cout << "\n***********************************\n";
     cout << "Results: " << passed << " passed, " << failed << " failed.\n";
     
     if (failed > 0) {
-        cout << "Some tests FAILED. Review output above.\n";
+        cout << "test failed, review them.\n";
         return 1;
     }
     
-    cout << "All tests passed.\n";
+    cout << "the tests passed perfectlly, just kidding.\n";
     return 0;
 }
 // #include "../include/min_heap.h"

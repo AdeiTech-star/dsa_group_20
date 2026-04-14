@@ -8,20 +8,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # adding all headers
 include_directories(include)
 
-# ─── 1. CORE LIBRARIES ──────────────────────────────────────────
-# We create a library for each data structure so they can be reused
+# the libraries for each data structure with reusability purpose
 add_library(graph_lib src/graph.cpp)
 add_library(hash_table_lib src/hash_table.cpp)
 add_library(min_heap_lib src/min_heap.cpp)
 
-# ─── 2. MAIN EXECUTABLE ─────────────────────────────────────────
-# This is the entry point for your actual application
+# the executables
+# The entry point for actual program running
 add_executable(urban_irs src/main.cpp)
 target_link_libraries(urban_irs graph_lib hash_table_lib min_heap_lib)
 
-# ─── 3. TEST EXECUTABLES ────────────────────────────────────────
-# We create separate executables for each test file
-
+#this is for all executables for each test file
 # Min-Heap Test
 add_executable(test_min_heap tests/test_min_heap.cpp)
 target_link_libraries(test_min_heap min_heap_lib)
