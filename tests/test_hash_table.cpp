@@ -1,5 +1,6 @@
 #include <iostream>
 #include "hash_table.h"
+using namespace std;
 
 static int passed = 0;
 static int failed = 0;
