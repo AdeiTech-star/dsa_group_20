@@ -23,6 +23,9 @@ private:
     // swapping two nodes in the heap
     void swap(int i, int j);
 
+    // doubling the capacity in case the heap is full
+    void resize();
+
 public:
     MinHeap(int cap = 100);
     ~MinHeap();
@@ -38,6 +41,9 @@ public:
     
     // getting the current number of elements
     int size() const;
+
+    // getting current capacity useful for testing purposes
+    int getCapacity() const;
 };
 
 #endif

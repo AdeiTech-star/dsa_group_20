@@ -58,11 +58,31 @@ void MinHeap::heapifyDown(int index) {
     }
 }
 
+// doubling the heap capacity and copying all elements
+// Similar to how the hash table resizes
+void MinHeap::resize() {
+    int newCapacity = capacity * 2;
+    HeapNode* newHeap = new HeapNode[newCapacity];
+    
+    // copying all existing elements to new array
+    for (int i = 0; i < currentSize; i++) {
+        newHeap[i] = heap[i];
+    }
+    
+    // freeing old array and updating pointers
+    delete[] heap;
+    heap = newHeap;
+    capacity = newCapacity;
+    
+    // cout << "Heap resized to capacity " << capacity << "\n";
+}
+
 // adding a new element to the heap
 bool MinHeap::insert(int priority, int data) {
     if (currentSize == capacity) {
-        cout << "Error: Heap is full. Cannot insert more elements.\n";
-        return false;
+        // cout << "Error: Heap is full. Cannot insert more elements.\n";
+        // return false;
+        resize();
     }
 
     // placing the new element at the end
@@ -107,4 +127,8 @@ bool MinHeap::isEmpty() const {
 
 int MinHeap::size() const {
     return currentSize;
+}
+
+int MinHeap::getCapacity() const {
+    return capacity;
 }
