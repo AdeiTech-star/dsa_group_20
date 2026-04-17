@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-// ── Constructor ───────────────────────────────────────────────────────────────
+// Constructor 
 // Allocates the flat tree array and zeroes every node.
 // Size is 4 * BUCKETS — this safely covers all internal nodes
 // even for non-power-of-2 sizes. Since BUCKETS is a power of 2,
@@ -14,12 +14,12 @@ SegmentTree::SegmentTree() {
         tree[i] = 0;
 }
 
-// ── Destructor ────────────────────────────────────────────────────────────────
+// Destructor
 SegmentTree::~SegmentTree() {
     delete[] tree;
 }
 
-// ── updateHelper ──────────────────────────────────────────────────────────────
+// updateHelper 
 // Walks down the tree to the bucket at position pos and adds delta.
 // On the way back up every ancestor node is updated to reflect the change.
 //
@@ -49,7 +49,7 @@ void SegmentTree::updateHelper(int node, int start, int end,
     tree[node] = tree[2 * node] + tree[2 * node + 1];
 }
 
-// ── queryHelper ───────────────────────────────────────────────────────────────
+// queryHelper 
 // Returns the sum of all buckets in [left, right].
 // Three cases at each node:
 //   1. This node's range is completely outside [left, right] — return 0
@@ -76,7 +76,7 @@ int SegmentTree::queryHelper(int node, int start, int end,
     return leftSum + rightSum;
 }
 
-// ── Public: update ────────────────────────────────────────────────────────────
+// Public: update 
 // Called by REPORT_INCIDENT with delta = +1
 // Called when resolving an incident with delta = -1 (optional)
 // pos should be: timestamp % BUCKETS
@@ -89,7 +89,7 @@ void SegmentTree::update(int pos, int delta) {
     updateHelper(1, 0, BUCKETS - 1, pos, delta);
 }
 
-// ── Public: query ─────────────────────────────────────────────────────────────
+// Public: query 
 // COUNT_WINDOW operation — how many incidents in minute range [left, right]?
 // Both left and right are bucket indices (timestamp % BUCKETS).
 int SegmentTree::query(int left, int right) const {
@@ -101,14 +101,14 @@ int SegmentTree::query(int left, int right) const {
     return queryHelper(1, 0, BUCKETS - 1, left, right);
 }
 
-// ── Public: reset ─────────────────────────────────────────────────────────────
+// Public: reset 
 // Resets all buckets to zero — useful between test scenarios
 void SegmentTree::reset() {
     for (int i = 0; i < 4 * BUCKETS; i++)
         tree[i] = 0;
 }
 
-// ── Public: total ─────────────────────────────────────────────────────────────
+// Public: total 
 // Returns total incidents across all buckets — just reads the root node
 // O(1) because the root always stores the global sum
 int SegmentTree::total() const {
