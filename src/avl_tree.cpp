@@ -163,6 +163,32 @@ void AVLTree::printRange(AVLNode* node, int low, int high) const {
         printRange(node->right, low, high);
 }
 
+// countRange (public)
+int AVLTree::countRange(int low, int high) const {
+    return countRange(root, low, high);
+}
+
+// countRange (private recursive helper)
+// Same traversal logic as printRange but accumulates a count instead of printing.
+// Prunes left subtree when node->key <= low (nothing smaller can be in range)
+// and right subtree when node->key >= high.
+int AVLTree::countRange(AVLNode* node, int low, int high) const {
+    if (!node) return 0;
+
+    int count = 0;
+
+    if (low < node->key)
+        count += countRange(node->left, low, high);
+
+    if (low <= node->key && node->key <= high)
+        count++;
+
+    if (high > node->key)
+        count += countRange(node->right, low, high);
+
+    return count;
+}
+
 // Return height of entire tree
 int AVLTree::getTreeHeight() {
     return getHeight(root);

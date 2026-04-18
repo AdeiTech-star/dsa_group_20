@@ -1,6 +1,6 @@
 // test_dijkstra.cpp
-// Build: g++ -Wall -Wextra -g src/graph.cpp src/min_heap.cpp src/dijkstra.cpp tests/test_dijkstra.cpp -I include -o run_dijkstra_tests
-// Run:   ./run_dijkstra_tests
+// Build: cmake --build build --target test_dijkstra
+// Run:   ./build/test_dijkstra
 
 
 #include "../include/dijkstra.h"

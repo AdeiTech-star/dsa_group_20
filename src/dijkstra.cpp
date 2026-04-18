@@ -83,9 +83,8 @@ void printDistances(DijkstraResult& result, int sourceID) {
     cout << "\nShortest distances from vertex " << sourceID << ":\n";
 
     for (int i = 0; i < MAX_VERTICES; i++) {
-        if (!g.active[i])            continue; // skip removed vertices
-        if (result.dist[i] == INF)   continue; // skip unreachable
-        if (i == sourceID)           continue; // skip the source itself
+        if (result.dist[i] == INF) continue; // skip unreachable / inactive
+        if (i == sourceID)         continue; // skip the source itself
 
         cout << "  vertex " << sourceID << " → vertex " << i
              << " : " << result.dist[i] << "\n";

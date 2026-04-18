@@ -8,7 +8,11 @@
 #include "graph.h"
 #include "min_heap.h"
 
-const int INF = 99999; // stands in for "infinity" — no path found yet
+// INF represents "no path found yet".
+// Must exceed any real path: 1000 nodes x max_edge_weight.
+// 1,000,000,000 fits in a 32-bit int (max ~2.1B) and leaves headroom
+// so that (INF + any_realistic_weight) does not overflow.
+const int INF = 1000000000;
 
 // Holds the result of one Dijkstra run from a single source vertex.
 // dist[i]   = shortest known distance from source to vertex i

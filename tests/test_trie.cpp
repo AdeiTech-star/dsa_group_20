@@ -1,3 +1,7 @@
+// test_trie.cpp
+// Build: cmake --build build --target test_trie
+// Run:   ./build/test_trie
+
 #include "../include/trie.h"
 #include <iostream>
 using namespace std;
@@ -114,6 +118,6 @@ int main() {
         return 1;
     }
 
-    cout << "All Trie tests passed.\n";
+    cout << "All tests passed.\n";
     return 0;
 }
