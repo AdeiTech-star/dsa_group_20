@@ -21,10 +21,31 @@ int HashTable::hash(int key) const {
     return ((key % capacity) + capacity) % capacity;
 }
 
-// Insert 
+// Insert
+// Adds a new key-value pair. Returns false (and does NOT overwrite)
+// if the key already exists. Use update() to change an existing value.
 bool HashTable::insert(int key, int value) {
     if (load() > 1.0f) resize();
 
+    int slot = hash(key);
+
+    ChainNode* curr = table[slot];
+    while (curr != nullptr) {
+        if (curr->key == key)
+            return false;   // key already present — caller must use update()
+        curr = curr->next;
+    }
+
+    ChainNode* newNode = new ChainNode(key, value);
+    newNode->next = table[slot];
+    table[slot]   = newNode;
+    count++;
+    return true;
+}
+
+// Update
+// Changes the value for an existing key. Returns false if key not found.
+bool HashTable::update(int key, int value) {
     int slot = hash(key);
 
     ChainNode* curr = table[slot];
@@ -35,12 +56,7 @@ bool HashTable::insert(int key, int value) {
         }
         curr = curr->next;
     }
-
-    ChainNode* newNode = new ChainNode(key, value);
-    newNode->next = table[slot];
-    table[slot]   = newNode;
-    count++;
-    return true;
+    return false;   // key does not exist — caller must use insert() first
 }
 
 // Lookup 

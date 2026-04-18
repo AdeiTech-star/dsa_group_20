@@ -17,8 +17,11 @@ public:
     explicit HashTable(int capacity = 101);
     ~HashTable();
 
-    // Insert or update a key-value pair
+    // Insert a new key-value pair. Returns false if key already exists.
     bool insert(int key, int value);
+
+    // Update the value for an existing key. Returns false if key not found.
+    bool update(int key, int value);
 
     // Returns pointer to value if found, nullptr if not
     int* lookup(int key);
