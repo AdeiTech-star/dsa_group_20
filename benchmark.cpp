@@ -207,7 +207,11 @@ void benchmark_TemporalAnalytics() {
         printRow("SegmentTree update x 10,000", N, updateMs);
 
         startTimer();
-        for (int i = 0; i < N; i++) st.query(i % BUCKETS, (i + 100) % BUCKETS);
+        for (int i = 0; i < N; i++) {
+            int l = i % BUCKETS;
+            int r = (l + 100 < BUCKETS) ? l + 100 : BUCKETS - 1;
+            st.query(l, r);
+        }
         double queryMs = elapsedMs();
         printRow("SegmentTree range query x 10,000", N, queryMs);
     }

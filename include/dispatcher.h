@@ -12,7 +12,7 @@
 
 // Limits 
 const int MAX_UNITS     = 50;
-const int MAX_INCIDENTS = 500;
+const int MAX_INCIDENTS = 10500;  // supports 10,000-op benchmark + headroom
 
 // Enumerations
 enum UnitType     { POLICE = 0, AMBULANCE = 1, FIRE_TRUCK = 2 };
