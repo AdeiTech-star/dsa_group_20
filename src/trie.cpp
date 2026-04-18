@@ -17,9 +17,12 @@ Trie::Trie() {
     root = new TrieNode();
 }
 
-// Trie destructor 
+// Trie destructor
+// NOTE: does NOT call destroy() because destroy() re-allocates a new root
+// after freeing — that root would immediately leak. Instead we free directly.
 Trie::~Trie() {
-    destroy();
+    destroyRecursive(root);
+    root = nullptr;
 }
 
 // getIndex 
