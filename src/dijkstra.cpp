@@ -6,13 +6,20 @@ using namespace std;
 DijkstraResult dijkstra(Graph& g, int sourceID) {
     DijkstraResult result;
 
-    //  Step 1: initialise dist[] and parent[] 
+    //  Step 1: initialise dist[] and parent[]
     // Every vertex starts at INF (unreachable) with no known parent.
     // The source costs nothing to reach and has no predecessor.
     for (int i = 0; i < MAX_VERTICES; i++) {
         result.dist[i]   = INF;
         result.parent[i] = -1;
     }
+
+    // Guard: invalid or inactive source — return all-INF result
+    if (sourceID < 0 || sourceID >= MAX_VERTICES || !g.active[sourceID]) {
+        cout << "Error: dijkstra source " << sourceID << " is invalid or not in the graph.\n";
+        return result;
+    }
+
     result.dist[sourceID] = 0;
 
     //  Step 2: set up visited[] and the min-heap 
@@ -76,8 +83,9 @@ void printDistances(DijkstraResult& result, int sourceID) {
     cout << "\nShortest distances from vertex " << sourceID << ":\n";
 
     for (int i = 0; i < MAX_VERTICES; i++) {
-        if (result.dist[i] == INF) continue; // skip unreachable / inactive
-        if (i == sourceID) continue;          // skip the source itself
+        if (!g.active[i])            continue; // skip removed vertices
+        if (result.dist[i] == INF)   continue; // skip unreachable
+        if (i == sourceID)           continue; // skip the source itself
 
         cout << "  vertex " << sourceID << " → vertex " << i
              << " : " << result.dist[i] << "\n";

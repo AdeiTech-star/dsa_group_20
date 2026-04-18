@@ -33,6 +33,9 @@ void SegmentTree::updateHelper(int node, int start, int end,
     // Base case: we have reached the exact leaf bucket
     if (start == end) {
         tree[node] += delta;
+        // floor at 0 — incident counts cannot go negative.
+        // a double-resolution bug would be caught at the dispatcher level instead.
+        if (tree[node] < 0) tree[node] = 0;  // incident counts cannot go negative
         return;
     }
 
