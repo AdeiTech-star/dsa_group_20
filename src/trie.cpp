@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-// ── TrieNode constructor ────────────────────────────────────
+// TrieNode constructor 
 // Every child starts as nullptr.
 // isEndOfWord starts as false.
 TrieNode::TrieNode() {
@@ -12,23 +12,23 @@ TrieNode::TrieNode() {
     isEndOfWord = false;
 }
 
-// ── Trie constructor ────────────────────────────────────────
+// Trie constructor 
 Trie::Trie() {
     root = new TrieNode();
 }
 
-// ── Trie destructor ─────────────────────────────────────────
+// Trie destructor 
 Trie::~Trie() {
     destroy();
 }
 
-// ── getIndex ────────────────────────────────────────────────
+// getIndex 
 // Maps 'a' to 0, 'b' to 1, ..., 'z' to 25
 int Trie::getIndex(char c) const {
     return c - 'a';
 }
 
-// ── hasChildren ─────────────────────────────────────────────
+// hasChildren 
 // Checks whether a node has at least one child
 bool Trie::hasChildren(TrieNode* node) const {
     if (node == nullptr) {
@@ -44,7 +44,7 @@ bool Trie::hasChildren(TrieNode* node) const {
     return false;
 }
 
-// ── insert ──────────────────────────────────────────────────
+// insert 
 // Adds a word into the trie.
 // Returns false if the word is invalid or empty.
 bool Trie::insert(const char word[]) {
@@ -77,7 +77,7 @@ bool Trie::insert(const char word[]) {
     return true;
 }
 
-// ── search ──────────────────────────────────────────────────
+// search 
 // Checks whether the full word exists in the trie.
 bool Trie::search(const char word[]) const {
     if (word == nullptr || word[0] == '\0') {
@@ -105,7 +105,7 @@ bool Trie::search(const char word[]) const {
     return current->isEndOfWord;
 }
 
-// ── startsWith ──────────────────────────────────────────────
+// startsWith 
 // Checks whether the trie contains this prefix.
 bool Trie::startsWith(const char prefix[]) const {
     if (prefix == nullptr || prefix[0] == '\0') {
@@ -133,7 +133,7 @@ bool Trie::startsWith(const char prefix[]) const {
     return true;
 }
 
-// ── printWordsRecursive ─────────────────────────────────────
+// printWordsRecursive 
 // Walks down from the given node and prints all words below it.
 void Trie::printWordsRecursive(TrieNode* node, char buffer[], int depth) const {
     if (node == nullptr) {
@@ -153,7 +153,7 @@ void Trie::printWordsRecursive(TrieNode* node, char buffer[], int depth) const {
     }
 }
 
-// ── printWordsWithPrefix ────────────────────────────────────
+// printWordsWithPrefix 
 // Finds the prefix node, then prints all words below it.
 void Trie::printWordsWithPrefix(const char prefix[]) const {
     if (prefix == nullptr || prefix[0] == '\0') {
@@ -188,7 +188,7 @@ void Trie::printWordsWithPrefix(const char prefix[]) const {
     printWordsRecursive(current, buffer, depth);
 }
 
-// ── removeRecursive ─────────────────────────────────────────
+// removeRecursive
 // Removes a word from the trie.
 // Returns true if this node can be deleted by its parent.
 bool Trie::removeRecursive(TrieNode* node, const char word[], int depth) {
@@ -238,7 +238,7 @@ bool Trie::removeRecursive(TrieNode* node, const char word[], int depth) {
     return (!node->isEndOfWord && !hasChildren(node));
 }
 
-// ── remove ──────────────────────────────────────────────────
+// remove 
 // Removes a word from the trie.
 bool Trie::remove(const char word[]) {
     if (word == nullptr || word[0] == '\0') {
@@ -253,7 +253,7 @@ bool Trie::remove(const char word[]) {
     return true;
 }
 
-// ── destroyRecursive ────────────────────────────────────────
+// destroyRecursive
 // Frees all nodes below this node.
 void Trie::destroyRecursive(TrieNode* node) {
     if (node == nullptr) {
@@ -269,7 +269,7 @@ void Trie::destroyRecursive(TrieNode* node) {
     delete node;
 }
 
-// ── destroy ─────────────────────────────────────────────────
+// destroy 
 // Frees the whole trie and creates a fresh empty root again.
 void Trie::destroy() {
     if (root != nullptr) {
@@ -279,7 +279,7 @@ void Trie::destroy() {
     root = new TrieNode();
 }
 
-// ── isEmpty ─────────────────────────────────────────────────
+// isEmpty 
 // Trie is empty if root has no children and is not end of word.
 bool Trie::isEmpty() const {
     if (root == nullptr) {
