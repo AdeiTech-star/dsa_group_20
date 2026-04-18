@@ -17,7 +17,7 @@ void check(const char* label, bool condition) {
     }
 }
 
-// ── test insert and search ──────────────────────────────────
+// test insert and search
 void testInsertAndSearch() {
     cout << "\n-- Insert and search tests --\n";
 
@@ -34,7 +34,7 @@ void testInsertAndSearch() {
     check("search missing word fails", trie.search("kanombe") == false);
 }
 
-// ── test prefix check ───────────────────────────────────────
+// test prefix check
 void testStartsWith() {
     cout << "\n-- Prefix tests --\n";
 
@@ -50,7 +50,7 @@ void testStartsWith() {
     check("startsWith pol is false", trie.startsWith("pol") == false);
 }
 
-// ── test remove ─────────────────────────────────────────────
+// test remove 
 void testRemove() {
     cout << "\n-- Remove tests --\n";
 
@@ -68,7 +68,7 @@ void testRemove() {
     check("remove missing word returns false", trie.remove("kanombe") == false);
 }
 
-// ── test invalid input ──────────────────────────────────────
+// test invalid input 
 void testInvalidInput() {
     cout << "\n-- Invalid input tests --\n";
 
@@ -82,7 +82,7 @@ void testInvalidInput() {
     check("insert with digit fails", trie.insert("node1") == false);
 }
 
-// ── test empty trie ─────────────────────────────────────────
+// test empty trie 
 void testIsEmpty() {
     cout << "\n-- Empty trie tests --\n";
 
@@ -96,7 +96,7 @@ void testIsEmpty() {
     check("trie empty after removing only word", trie.isEmpty() == true);
 }
 
-// ── runner ──────────────────────────────────────────────────
+// runner 
 int main() {
     cout << "========= Trie Test Suite =========\n";
 
