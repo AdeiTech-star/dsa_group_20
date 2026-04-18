@@ -4,7 +4,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-const int MAX_VERTICES = 100; // maximum number of intersections
+const int MAX_VERTICES = 1000; // maximum number of intersections
 
 //   Struct 1: one node in an adjacency linked list   ─
 // Represents a single directed edge: some vertex → destId, cost = weight
