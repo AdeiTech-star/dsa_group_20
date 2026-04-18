@@ -38,8 +38,9 @@ private:
     // Print all nodes in a key range
     void printRange(AVLNode* node, int low, int high) const;
 
-    // Count nodes whose key falls in [low, high]
-    int countRange(AVLNode* node, int low, int high) const;
+    // Fill out[] with values for keys in [low, high]
+    void collectRange(AVLNode* node, int low, int high,
+                      int* out, int& count, int maxOut) const;
 
     // Count total nodes (for testing balance)
     int countNodes(AVLNode* node);
@@ -52,10 +53,10 @@ public:
     int* search(int key);
     void printRange(int low, int high) const;
 
-    // Returns the number of nodes whose key falls in [low, high].
-    // O(log n + k) where k is the number of nodes in range.
-    // Used by the dispatcher for programmatic time-window queries.
-    int countRange(int low, int high) const;
+    // Fills out[] with the values (incidentIds) for all keys in [low, high].
+    // Returns the number of items written. out must hold at least maxOut ints.
+    // O(log n + k). Used by listIncidentsInWindow to retrieve actual records.
+    int collectRange(int low, int high, int* out, int maxOut) const;
 
     // Useful for testing - returns tree height
     int getTreeHeight();

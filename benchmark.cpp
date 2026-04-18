@@ -225,10 +225,11 @@ void benchmark_TemporalAnalytics() {
         double insertMs = elapsedMs();
         printRow("AVLTree insert x 10,000", N, insertMs);
 
+        int buf[200];
         startTimer();
-        for (int i = 0; i < N; i++) avl.countRange(i, i + 100);
+        for (int i = 0; i < N; i++) avl.collectRange(i, i + 100, buf, 200);
         double rangeMs = elapsedMs();
-        printRow("AVLTree countRange x 10,000", N, rangeMs);
+        printRow("AVLTree collectRange x 10,000", N, rangeMs);
 
         cout << "  AVL height after 10,000 inserts: " << avl.getTreeHeight()
              << "  (log2(10000) ≈ 13.3)\n\n";

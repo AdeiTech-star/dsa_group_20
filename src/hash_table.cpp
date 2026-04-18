@@ -60,7 +60,7 @@ bool HashTable::update(int key, int value) {
 }
 
 // Lookup 
-int* HashTable::lookup(int key) {
+int* HashTable::lookup(int key) const {
     int slot = hash(key);
 
     ChainNode* curr = table[slot];

@@ -151,27 +151,6 @@ void testRotations() {
     check("right-left case handled", tree4.size() == 3);
 }
 
-// Test countRange — programmatic range queries
-void testCountRange() {
-    cout << "\n-- countRange --\n";
-    AVLTree logs;
-
-    logs.insert(5,  501);
-    logs.insert(10, 502);
-    logs.insert(15, 503);
-    logs.insert(20, 504);
-    logs.insert(25, 505);
-
-    check("countRange exact match",          logs.countRange(10, 10) == 1);
-    check("countRange full span",            logs.countRange(5, 25)  == 5);
-    check("countRange middle slice",         logs.countRange(10, 20) == 3);
-    check("countRange below all keys",       logs.countRange(1, 4)   == 0);
-    check("countRange above all keys",       logs.countRange(30, 50) == 0);
-    check("countRange single missing key",   logs.countRange(7, 9)   == 0);
-    check("countRange low == high, present", logs.countRange(15, 15) == 1);
-    check("countRange low > high returns 0", logs.countRange(20, 10) == 0);
-}
-
 // Test that height stays O(log n) after 1000 insertions
 void testHeightAfter1000() {
     cout << "\n-- O(log n) height after 1000 insertions --\n";
@@ -184,7 +163,6 @@ void testHeightAfter1000() {
     // log2(1000) ≈ 10. AVL guarantee: height <= 1.44 * log2(n+2) ≈ 14.4
     check("height <= 15 after 1000 sequential insertions", height <= 15);
     check("all 1000 nodes present", tree.size() == 1000);
-    check("countRange full span = 1000", tree.countRange(1, 1000) == 1000);
 }
 
 // Stress test with many insertions
@@ -218,7 +196,6 @@ int main() {
     testBalanceProperty();
     testDuplicateKeys();
     testRangeQuery();
-    testCountRange();
     testHeightAfter1000();
     testEmptyTree();
     testRotations();

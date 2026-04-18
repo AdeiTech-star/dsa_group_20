@@ -509,9 +509,6 @@ bool Dispatcher::resolveIncident(int incidentId) {
         }
     }
 
-    // Decrement the time-window count
-    timeWindow.update(inc.reportTime % BUCKETS, -1);
-
     printDivider();
     cout << "[RESOLVED] Incident #" << incidentId
          << " (" << incidentTypeName(inc.type) << ")"
@@ -616,8 +613,9 @@ void Dispatcher::searchUnitsByPrefix(const char* prefix) const {
 // -----------------------------------------------------------------------------
 
 // countIncidentsInWindow
-// Uses the SegmentTree to count incidents reported in [startMinute, endMinute].
-// O(log BUCKETS) — does not scan the incident array.
+// Uses the SegmentTree to count ALL incidents reported in [startMinute, endMinute].
+// O(log BUCKETS) — returns a number only, no individual records.
+// Use listIncidentsInWindow when you need the actual incident details.
 int Dispatcher::countIncidentsInWindow(int startMinute, int endMinute) const {
     int left  = startMinute % BUCKETS;
     int right = endMinute   % BUCKETS;
@@ -628,14 +626,36 @@ int Dispatcher::countIncidentsInWindow(int startMinute, int endMinute) const {
     return timeWindow.query(left, right);
 }
 
-// countAllIncidentsInWindow
-// Uses AVLTree::countRange to count ALL incidents (open + resolved) whose
-// reportTime falls in [startMinute, endMinute].
-// O(log n + k) where k is the number of matching incidents.
-// Complements countIncidentsInWindow: that counts only open ones via SegmentTree;
-// this counts the full historical record via the AVL log.
-int Dispatcher::countAllIncidentsInWindow(int startMinute, int endMinute) const {
-    return incidentLog.countRange(startMinute, endMinute);
+// listIncidentsInWindow
+// Uses AVLTree::collectRange to get all incident IDs in [startMinute, endMinute],
+// then looks each one up in the incident table to print full details.
+// This is the "logbook" query — use it when you need the actual records,
+// not just a count.
+void Dispatcher::listIncidentsInWindow(int startMinute, int endMinute) const {
+    cout << "\n  Incidents in window [T+" << startMinute
+         << ", T+" << endMinute << "]:\n";
+
+    int ids[MAX_INCIDENTS];
+    int found = incidentLog.collectRange(startMinute, endMinute, ids, MAX_INCIDENTS);
+
+    if (found == 0) {
+        cout << "    (none)\n";
+        return;
+    }
+
+    for (int i = 0; i < found; i++) {
+        int* slotPtr = incidentTable.lookup(ids[i]);
+        if (!slotPtr) continue;
+        const Incident& inc = incidents[*slotPtr];
+        cout << "    #" << inc.id
+             << "  " << incidentTypeName(inc.type)
+             << "  sev=" << inc.severity << "/10"
+             << "  vertex=" << inc.locationVertex
+             << "  T+" << inc.reportTime;
+        if (inc.assignedUnitId != -1)
+            cout << "  unit=" << inc.assignedUnitId;
+        cout << (inc.resolved ? "  [resolved]" : "  [open]") << "\n";
+    }
 }
 
 // getBusiestIntersection
@@ -734,14 +754,13 @@ void Dispatcher::printAnalytics() const {
 
     // Time-window queries: last 60 minutes
     int windowStart = (currentTime > 60) ? currentTime - 60 : 0;
-    int openCount = countIncidentsInWindow(windowStart, currentTime);
-    int allCount  = countAllIncidentsInWindow(windowStart, currentTime);
-    cout << "  Open incidents  (last 60 min) [SegmentTree]: " << openCount << "\n";
-    cout << "  Total incidents (last 60 min) [AVL log]    : " << allCount  << "\n";
 
-    // AVL Tree range query: same window
-    cout << "\n  Incident log (T+" << windowStart << " to T+" << currentTime << "):\n";
-    incidentLog.printRange(windowStart, currentTime);
+    // Segment tree: how many? — O(log BUCKETS), count only
+    int stCount = countIncidentsInWindow(windowStart, currentTime);
+    cout << "  Incidents reported (last 60 min) [SegmentTree]: " << stCount << "\n";
+
+    // AVL tree: which ones? — O(log n + k), returns actual records
+    listIncidentsInWindow(windowStart, currentTime);
 
     cout << "-----------------------------------------------------------\n\n";
 }

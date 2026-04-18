@@ -24,7 +24,7 @@ public:
     bool update(int key, int value);
 
     // Returns pointer to value if found, nullptr if not
-    int* lookup(int key);
+    int* lookup(int key) const;
 
     // Remove a key — returns true if found and removed
     bool remove(int key);
