@@ -2,19 +2,19 @@
 #include <iostream>
 using namespace std;
 
-// ── Constructor ─────────────────────────────────────────────
+// Constructor 
 UnionFind::UnionFind() {
     parent = nullptr;
     rank   = nullptr;
     size   = 0;
 }
 
-// ── Destructor ──────────────────────────────────────────────
+// Destructor
 UnionFind::~UnionFind() {
     destroy();
 }
 
-// ── init ────────────────────────────────────────────────────
+// init 
 // Creates the arrays and makes every node its own parent.
 // At the start, each node is in its own set.
 void UnionFind::init(int n) {
@@ -36,7 +36,7 @@ void UnionFind::init(int n) {
     }
 }
 
-// ── destroy ─────────────────────────────────────────────────
+// destroy 
 // Frees memory and clears the structure.
 void UnionFind::destroy() {
     if (parent != nullptr) {
@@ -52,7 +52,7 @@ void UnionFind::destroy() {
     size = 0;
 }
 
-// ── reset ───────────────────────────────────────────────────
+// reset
 // Keeps the same size, but makes every node separate again.
 void UnionFind::reset() {
     if (parent == nullptr || rank == nullptr) {
@@ -65,7 +65,7 @@ void UnionFind::reset() {
     }
 }
 
-// ── find ────────────────────────────────────────────────────
+// find 
 // Finds the root of x.
 // Path compression makes the tree flatter.
 int UnionFind::find(int x) {
@@ -81,7 +81,7 @@ int UnionFind::find(int x) {
     return parent[x];
 }
 
-// ── unite ───────────────────────────────────────────────────
+// unite 
 // Joins the set of a and the set of b.
 // We use union by rank to keep the tree short.
 void UnionFind::unite(int a, int b) {
@@ -116,7 +116,7 @@ void UnionFind::unite(int a, int b) {
     }
 }
 
-// ── connected ───────────────────────────────────────────────
+// connected 
 // Checks whether a and b are in the same connected set.
 bool UnionFind::connected(int a, int b) {
     if (a < 0 || a >= size || b < 0 || b >= size) {
@@ -133,7 +133,7 @@ bool UnionFind::connected(int a, int b) {
     return rootA == rootB;
 }
 
-// ── buildFromGraph ──────────────────────────────────────────
+// buildFromGraph
 // Reads all active edges from the graph and unions their ends.
 // This is how we connect Union-Find to the graph module.
 void UnionFind::buildFromGraph(Graph& g) {
@@ -160,7 +160,7 @@ void UnionFind::buildFromGraph(Graph& g) {
     }
 }
 
-// ── rebuildFromGraph ────────────────────────────────────────
+// rebuildFromGraph 
 // Same idea as buildFromGraph.
 // We keep this as a separate function name because in the project
 // we will likely call "rebuild" after road removals.
@@ -168,12 +168,12 @@ void UnionFind::rebuildFromGraph(Graph& g) {
     buildFromGraph(g);
 }
 
-// ── getSize ─────────────────────────────────────────────────
+// getSize 
 int UnionFind::getSize() const {
     return size;
 }
 
-// ── printParents ────────────────────────────────────────────
+// printParents
 // Helpful for debugging during development.
 void UnionFind::printParents() const {
     if (parent == nullptr) {
