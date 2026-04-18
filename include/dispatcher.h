@@ -132,7 +132,14 @@ public:
     void searchUnitsByPrefix(const char* prefix) const;
 
     // analytics
+    // Count open incidents reported in [startMinute, endMinute].
+    // Uses SegmentTree — O(log BUCKETS). Only counts unresolved incidents.
     int    countIncidentsInWindow(int startMinute, int endMinute) const;
+
+    // Count ALL incidents (including resolved) reported in [startMinute, endMinute].
+    // Uses AVLTree::countRange — O(log n + k). Useful for post-incident reports.
+    int    countAllIncidentsInWindow(int startMinute, int endMinute) const;
+
     int    getBusiestIntersection() const;
     double getAvgResponseTime()     const;
     void   printTopIntersections(int n) const;

@@ -1,0 +1,155 @@
+include/min_heap.h:30:5: style: Class 'MinHeap' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    MinHeap(int cap = 100);
+    ^
+src/dijkstra.cpp:6:32: style: Parameter 'g' can be declared as reference to const [constParameterReference]
+DijkstraResult dijkstra(Graph& g, int sourceID) {
+                               ^
+src/dijkstra.cpp:82:37: style: Parameter 'result' can be declared as reference to const [constParameterReference]
+void printDistances(DijkstraResult& result, int sourceID) {
+                                    ^
+src/dijkstra.cpp:97:32: style: Parameter 'result' can be declared as reference to const [constParameterReference]
+void printPath(DijkstraResult& result, int sourceID, int destID) {
+                               ^
+src/dijkstra.cpp:127:41: style: Parameter 'result' can be declared as reference to const [constParameterReference]
+int getShortestDistance(DijkstraResult& result, int destID) {
+                                        ^
+src/dispatcher.cpp:175:16: style: Array index 'ni' is used before limits check. [arrayIndexThenCheck]
+    while (name[ni] != '\0' && ni < 31) {
+               ^
+src/dispatcher.cpp:62:51: style: Parameter 'result' can be declared as reference to const [constParameterReference]
+void Dispatcher::recordPathVisits(DijkstraResult& result, int dest) {
+                                                  ^
+src/dispatcher.cpp:424:15: style: Variable 'inc' can be declared as reference to const [constVariableReference]
+    Incident& inc = incidents[*iSlotPtr];
+              ^
+src/dispatcher.cpp:199:10: style: Variable 'slotPtr' can be declared as pointer to const [constVariablePointer]
+    int* slotPtr = unitTable.lookup(unitId);
+         ^
+src/dispatcher.cpp:407:14: style: Variable 'slotPtr' can be declared as pointer to const [constVariablePointer]
+        int* slotPtr = incidentTable.lookup(id);
+             ^
+src/dispatcher.cpp:423:10: style: Variable 'iSlotPtr' can be declared as pointer to const [constVariablePointer]
+    int* iSlotPtr = incidentTable.lookup(targetIncidentId);
+         ^
+src/dispatcher.cpp:501:14: style: Variable 'uSlotPtr' can be declared as pointer to const [constVariablePointer]
+        int* uSlotPtr = unitTable.lookup(inc.assignedUnitId);
+             ^
+src/dispatcher.cpp:568:14: style: Variable 'uSlotPtr' can be declared as pointer to const [constVariablePointer]
+        int* uSlotPtr = unitTable.lookup(incidents[i].assignedUnitId);
+             ^
+src/graph.cpp:83:30: style: Parameter 'g' can be declared as reference to const [constParameterReference]
+bool updateEdgeWeight(Graph& g, int srcID, int destID, int newWeight, bool directed){
+                             ^
+src/graph.cpp:134:27: style: Parameter 'g' can be declared as reference to const [constParameterReference]
+void getNeighbours(Graph& g, int id){
+                          ^
+src/graph.cpp:157:26: style: Parameter 'g' can be declared as reference to const [constParameterReference]
+int getEdgeWeight(Graph& g, int srcID, int destID){
+                         ^
+src/graph.cpp:173:25: style: Parameter 'g' can be declared as reference to const [constParameterReference]
+bool isConnected(Graph& g, int srcID, int destID){
+                        ^
+src/graph.cpp:191:27: style: Parameter 'g' can be declared as reference to const [constParameterReference]
+int getVertexCount(Graph& g){
+                          ^
+src/graph.cpp:200:25: style: Parameter 'g' can be declared as reference to const [constParameterReference]
+int getEdgeCount(Graph& g, bool directed){
+                        ^
+src/min_heap.cpp:9:5: warning: Class 'MinHeap' does not have a copy constructor which is recommended since it has dynamic memory/resource allocation(s). [noCopyConstructor]
+    heap = new HeapNode[capacity];
+    ^
+src/min_heap.cpp:9:5: warning: Class 'MinHeap' does not have a operator= which is recommended since it has dynamic memory/resource allocation(s). [noOperatorEq]
+    heap = new HeapNode[capacity];
+    ^
+src/trie.cpp:17:5: warning: Class 'Trie' does not have a copy constructor which is recommended since it has dynamic memory/resource allocation(s). [noCopyConstructor]
+    root = new TrieNode();
+    ^
+src/trie.cpp:17:5: warning: Class 'Trie' does not have a operator= which is recommended since it has dynamic memory/resource allocation(s). [noOperatorEq]
+    root = new TrieNode();
+    ^
+src/trie.cpp:36:34: style: Parameter 'node' can be declared as pointer to const [constParameterPointer]
+bool Trie::hasChildren(TrieNode* node) const {
+                                 ^
+src/union_find.cpp:139:39: style: Parameter 'g' can be declared as reference to const [constParameterReference]
+void UnionFind::buildFromGraph(Graph& g) {
+                                      ^
+src/avl_tree.cpp:193:0: style: The function 'getTreeHeight' is never used. [unusedFunction]
+int AVLTree::getTreeHeight() {
+^
+src/avl_tree.cpp:198:0: style: The function 'size' is never used. [unusedFunction]
+int AVLTree::size() {
+^
+src/dijkstra.cpp:82:0: style: The function 'printDistances' is never used. [unusedFunction]
+void printDistances(DijkstraResult& result, int sourceID) {
+^
+src/dijkstra.cpp:97:0: style: The function 'printPath' is never used. [unusedFunction]
+void printPath(DijkstraResult& result, int sourceID, int destID) {
+^
+src/dijkstra.cpp:127:0: style: The function 'getShortestDistance' is never used. [unusedFunction]
+int getShortestDistance(DijkstraResult& result, int destID) {
+^
+src/dispatcher.cpp:130:0: style: The function 'tick' is never used. [unusedFunction]
+void Dispatcher::tick(int minutes) {
+^
+src/dispatcher.cpp:134:0: style: The function 'getTime' is never used. [unusedFunction]
+int Dispatcher::getTime() const {
+^
+src/dispatcher.cpp:145:0: style: The function 'addUnit' is never used. [unusedFunction]
+bool Dispatcher::addUnit(int id, const char* name, UnitType type, int locationVertex) {
+^
+src/dispatcher.cpp:198:0: style: The function 'relocateUnit' is never used. [unusedFunction]
+bool Dispatcher::relocateUnit(int unitId, int newVertex) {
+^
+src/dispatcher.cpp:213:0: style: The function 'printUnits' is never used. [unusedFunction]
+void Dispatcher::printUnits() const {
+^
+src/dispatcher.cpp:236:0: style: The function 'reportIncident' is never used. [unusedFunction]
+int Dispatcher::reportIncident(IncidentType type, int locationVertex, int severity) {
+^
+src/dispatcher.cpp:399:0: style: The function 'autoDispatch' is never used. [unusedFunction]
+bool Dispatcher::autoDispatch() {
+^
+src/dispatcher.cpp:478:0: style: The function 'resolveIncident' is never used. [unusedFunction]
+bool Dispatcher::resolveIncident(int incidentId) {
+^
+src/dispatcher.cpp:525:0: style: The function 'printIncidents' is never used. [unusedFunction]
+void Dispatcher::printIncidents() const {
+^
+src/dispatcher.cpp:548:0: style: The function 'closeRoad' is never used. [unusedFunction]
+bool Dispatcher::closeRoad(int srcId, int destId) {
+^
+src/dispatcher.cpp:586:0: style: The function 'reopenRoad' is never used. [unusedFunction]
+bool Dispatcher::reopenRoad(int srcId, int destId, int weight) {
+^
+src/dispatcher.cpp:607:0: style: The function 'searchUnitsByPrefix' is never used. [unusedFunction]
+void Dispatcher::searchUnitsByPrefix(const char* prefix) const {
+^
+src/dispatcher.cpp:690:0: style: The function 'printStatus' is never used. [unusedFunction]
+void Dispatcher::printStatus() const {
+^
+src/dispatcher.cpp:711:0: style: The function 'printAnalytics' is never used. [unusedFunction]
+void Dispatcher::printAnalytics() const {
+^
+src/hash_table.cpp:76:0: style: The function 'remove' is never used. [unusedFunction]
+bool HashTable::remove(int key) {
+^
+src/min_heap.cpp:132:0: style: The function 'getCapacity' is never used. [unusedFunction]
+int MinHeap::getCapacity() const {
+^
+src/segment_tree.cpp:109:0: style: The function 'reset' is never used. [unusedFunction]
+void SegmentTree::reset() {
+^
+src/segment_tree.cpp:117:0: style: The function 'total' is never used. [unusedFunction]
+int SegmentTree::total() const {
+^
+src/trie.cpp:113:0: style: The function 'startsWith' is never used. [unusedFunction]
+bool Trie::startsWith(const char prefix[]) const {
+^
+src/union_find.cpp:172:0: style: The function 'getSize' is never used. [unusedFunction]
+int UnionFind::getSize() const {
+^
+src/union_find.cpp:178:0: style: The function 'printParents' is never used. [unusedFunction]
+void UnionFind::printParents() const {
+^
+nofile:0:0: information: Active checkers: 161/592 (use --checkers-report=<filename> to see details) [checkersReport]
+

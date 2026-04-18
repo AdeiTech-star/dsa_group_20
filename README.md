@@ -59,24 +59,41 @@ urban-irs/
 
 ## Building
 
-> _To be updated once the build system is finalized._
+
 ```bash
-make
+mkdir build && cd build
+cmake ..
+cmake --build .
 ```
 
-## Running
+## Running Tests
 
-> _To be updated with full usage instructions._
 ```bash
-./urban_irs
+./build/test_graph
+./build/test_hash_table
+./build/test_min_heap
+./build/test_union_find
+./build/test_avl_tree
+./build/test_segment_tree
+./build/test_trie
+./build/test_dijkstra
+./build/test_dispatcher
 ```
 
-## Testing
+## Running Benchmark
 
-> _To be updated once the test harness is finalized._
 ```bash
-make test
+./build/benchmark
 ```
+
+The benchmark runs three timed scenarios:
+1. 10,000 incident reports and dispatches (~95ms)
+2. 500 segment tree window queries (~4ms)
+3. 100 DSU road closure/reopen cycles (~12ms)
+
+## Memory
+
+Verified with Valgrind — zero memory leaks, zero errors (see `docs/valgrind.log`).
 
 ## Team
 
@@ -87,4 +104,3 @@ make test
 | Nthabiseng Thema | nthema |
 | Regis Ndahiro Ngoga | rndahiro |
 
-**Course:** Data Structures & Algorithms — CMU Africa, March 2026

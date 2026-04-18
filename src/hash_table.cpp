@@ -1,4 +1,4 @@
-#include "hash_table.h"
+#include "../include/hash_table.h"
 #include <iostream>
 using namespace std;
 
@@ -25,7 +25,7 @@ int HashTable::hash(int key) const {
 // Adds a new key-value pair. Returns false (and does NOT overwrite)
 // if the key already exists. Use update() to change an existing value.
 bool HashTable::insert(int key, int value) {
-    if (load() > 1.0f) resize();
+    if (load() > 0.75f) resize();
 
     int slot = hash(key);
 

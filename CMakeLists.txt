@@ -72,3 +72,7 @@ target_link_libraries(test_dijkstra dijkstra_lib graph_lib min_heap_lib)
 # Dispatcher Test
 add_executable(test_dispatcher tests/test_dispatcher.cpp)
 target_link_libraries(test_dispatcher dispatcher_lib)
+
+# Benchmark
+add_executable(benchmark benchmark.cpp)
+target_link_libraries(benchmark dispatcher_lib)

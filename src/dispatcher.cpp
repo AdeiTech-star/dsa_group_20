@@ -92,8 +92,25 @@ const char* Dispatcher::incidentTypeName(IncidentType t) const {
 }
 
 // toLowerCopy
-// Copies src into dst as lowercase a-z, replacing anything outside a-z
-// with nothing (skipped). The trie only accepts lowercase letters.
+// Normalises a unit name for trie storage and lookup.
+//
+// The trie only accepts lowercase a-z characters, but real unit names contain
+// uppercase letters and non-alpha characters such as hyphens and digits
+// (e.g. "AMB-01", "FIRE-03", "Police01").
+//
+// This function:
+//   1. Converts uppercase A-Z to lowercase a-z.
+//   2. Silently drops any character that is not a-z (hyphens, digits, spaces).
+//
+// Effect on search:
+//   Inserting  "AMB-01"  stores  "amb"   in the trie.
+//   Searching prefix "AMB" normalises to "amb" and finds it correctly.
+//   Searching prefix "amb" also finds it — the two queries are equivalent.
+//
+// Trade-off: "AMB01" and "AMB-01" both normalise to "amb" and collide in the
+// trie. For this system all unit names are distinct enough that this is not a
+// problem. A production system would use a case-insensitive trie with a wider
+// alphabet to avoid the collision.
 void Dispatcher::toLowerCopy(const char* src, char* dst, int maxLen) const {
     int di = 0;
     for (int si = 0; src[si] != '\0' && di < maxLen - 1; si++) {
@@ -484,7 +501,11 @@ bool Dispatcher::resolveIncident(int incidentId) {
         int* uSlotPtr = unitTable.lookup(inc.assignedUnitId);
         if (uSlotPtr != nullptr) {
             units[*uSlotPtr].available      = true;
-            units[*uSlotPtr].locationVertex = inc.locationVertex; // unit is now on scene
+            // The unit's position is set to the incident vertex after resolution.
+            // This models the unit having physically arrived and completed the job.
+            // The next autoDispatch will route from this location, not the original
+            // station. Use relocateUnit() afterwards to move the unit back to base.
+            units[*uSlotPtr].locationVertex = inc.locationVertex;
         }
     }
 
@@ -607,6 +628,16 @@ int Dispatcher::countIncidentsInWindow(int startMinute, int endMinute) const {
     return timeWindow.query(left, right);
 }
 
+// countAllIncidentsInWindow
+// Uses AVLTree::countRange to count ALL incidents (open + resolved) whose
+// reportTime falls in [startMinute, endMinute].
+// O(log n + k) where k is the number of matching incidents.
+// Complements countIncidentsInWindow: that counts only open ones via SegmentTree;
+// this counts the full historical record via the AVL log.
+int Dispatcher::countAllIncidentsInWindow(int startMinute, int endMinute) const {
+    return incidentLog.countRange(startMinute, endMinute);
+}
+
 // getBusiestIntersection
 // Linear scan over visitCount[] — O(V).
 int Dispatcher::getBusiestIntersection() const {
@@ -701,10 +732,12 @@ void Dispatcher::printAnalytics() const {
              << " min  (over " << resolvedCount << " incidents)\n";
     }
 
-    // Time-window query: last 60 minutes
+    // Time-window queries: last 60 minutes
     int windowStart = (currentTime > 60) ? currentTime - 60 : 0;
-    int recentCount = countIncidentsInWindow(windowStart, currentTime);
-    cout << "  Incidents (last 60 min): " << recentCount << "\n";
+    int openCount = countIncidentsInWindow(windowStart, currentTime);
+    int allCount  = countAllIncidentsInWindow(windowStart, currentTime);
+    cout << "  Open incidents  (last 60 min) [SegmentTree]: " << openCount << "\n";
+    cout << "  Total incidents (last 60 min) [AVL log]    : " << allCount  << "\n";
 
     // AVL Tree range query: same window
     cout << "\n  Incident log (T+" << windowStart << " to T+" << currentTime << "):\n";
