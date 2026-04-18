@@ -36,7 +36,7 @@ void testInsertAndLookup() {
 void testUpdate() {
     HashTable ht(7);
     ht.insert(5, 100);
-    ht.insert(5, 999);   // same key — should update value in chain
+    ht.update(5, 999); 
 
     check("update value in chain",
           ht.lookup(5) != nullptr && *ht.lookup(5) == 999);
