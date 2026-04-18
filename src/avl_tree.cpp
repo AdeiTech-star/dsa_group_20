@@ -140,14 +140,14 @@ AVLNode* AVLTree::search(AVLNode* node, int key) {
 }
 
 // Public range query interface
-void AVLTree::printRange(int low, int high) {
+void AVLTree::printRange(int low, int high) const {
     cout << "Incidents between " << low << " and " << high << ":\n";
     printRange(root, low, high);
     cout << "--- End of Report ---\n";
 }
 
 // In-order traversal that only prints nodes in range
-void AVLTree::printRange(AVLNode* node, int low, int high) {
+void AVLTree::printRange(AVLNode* node, int low, int high) const {
     if (!node) return;
     
     // If current key might have smaller keys in left subtree, check left

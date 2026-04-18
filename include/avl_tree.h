@@ -36,7 +36,7 @@ private:
     void destroyTree(AVLNode* node);
 
     // Print all nodes in a key range
-    void printRange(AVLNode* node, int low, int high);
+    void printRange(AVLNode* node, int low, int high) const;
     
     // Count total nodes (for testing balance)
     int countNodes(AVLNode* node);
@@ -47,7 +47,7 @@ public:
     
     void insert(int key, int value);
     int* search(int key);
-    void printRange(int low, int high);
+    void printRange(int low, int high) const;
     
     // Useful for testing - returns tree height
     int getTreeHeight();
