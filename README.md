@@ -109,7 +109,7 @@ Verified with Valgrind — zero memory leaks, zero errors (see `build/valgrind.l
 | Name | Andrew ID |
 |------|-----------|
 | Kavini Nzau | knzau |
-| Christian Abiyingoma | cabiying |
 | Nthabiseng Thema | nthema |
+| Christian Abiyingoma | cabiying |
 | Regis Ndahiro Ngoga | rndahiro |
 
