@@ -17,9 +17,16 @@
 #include "include/segment_tree.h"
 #include "include/union_find.h"
 #include <iostream>
+#include <fstream>
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
+
+// Silence / restore cout around noisy library calls
+static ofstream devNull("/dev/null");
+static streambuf* realCout = nullptr;
+void muteOutput()   { realCout = cout.rdbuf(devNull.rdbuf()); }
+void unmuteOutput() { if (realCout) cout.rdbuf(realCout); }
 
 // Timing helpers
 
@@ -69,6 +76,7 @@ void benchmark_MassCasualty() {
     cout << "  SCENARIO 1: MASS CASUALTY EVENT\n";
     cout << "------------------------------------------------------\n\n";
 
+    muteOutput();
     Graph g = buildBenchGraph();
     Dispatcher d(g);
 
@@ -82,7 +90,7 @@ void benchmark_MassCasualty() {
     for (int i = 0; i < 20; i++)
         d.addUnit(i + 1, names[i], types[i % 3], (i * 2) % 50);
 
-    // Phase A: 10,000 reportIncident calls 
+    // Phase A: 10,000 reportIncident calls
     const int N_INC = 10000;
     IncidentType itypes[4] = {CRIME, MEDICAL, FIRE, ACCIDENT};
 
@@ -92,23 +100,28 @@ void benchmark_MassCasualty() {
         d.reportIncident(itypes[i % 4], i % 50, 1 + (i % 10));
     }
     double reportMs = elapsedMs();
+    unmuteOutput();
     printRow("reportIncident x 10,000", N_INC, reportMs);
 
-    // Phase B: autoDispatch until queue drains 
+    // Phase B: autoDispatch until queue drains
     long dispatchCount = 0;
+    muteOutput();
     startTimer();
     while (d.autoDispatch()) dispatchCount++;
     double dispatchMs = elapsedMs();
+    unmuteOutput();
     printRow("autoDispatch (drain queue)", dispatchCount, dispatchMs);
 
-    // ── Phase C: resolveIncident for all dispatched incidents
+    // Phase C: resolveIncident for all dispatched incidents
     long resolveCount = 0;
+    muteOutput();
     startTimer();
     d.tick(50);
     for (int i = 1; i <= N_INC; i++) {
         if (d.resolveIncident(i)) resolveCount++;
     }
     double resolveMs = elapsedMs();
+    unmuteOutput();
     printRow("resolveIncident", resolveCount, resolveMs);
 
     cout << "  Avg response time after bulk resolve: "
@@ -118,7 +131,9 @@ void benchmark_MassCasualty() {
     // countIncidentsInWindow (SegmentTree) so both appear in benchmark output
     d.printAnalytics();
 
+    muteOutput();
     destroyGraph(g);
+    unmuteOutput();
 }
 
 // -----------------------------------------------------------------------------
@@ -136,6 +151,7 @@ void benchmark_RoadClosure() {
     cout << "  SCENARIO 2: ROAD CLOSURE REROUTING\n";
     cout << "------------------------------------------------------\n\n";
 
+    muteOutput();
     Graph g = buildBenchGraph();
     Dispatcher d(g);
 
@@ -144,37 +160,40 @@ void benchmark_RoadClosure() {
 
     const int N_OPS = 10000;
 
-    // Phase A: 10,000 road close + reopen cycles 
+    // Phase A: 10,000 road close + reopen cycles
     // Each cycle: remove edge → rebuild UnionFind (O(V+E)) → re-add edge → rebuild
     startTimer();
     for (int i = 0; i < N_OPS; i++) {
-        int u = (i * 7) % 49;      // spread across different edges
+        int u = (i * 7) % 49;
         int v = (u + 1) % 50;
         d.closeRoad(u, v);
         d.tick(1);
         d.reopenRoad(u, v, 1 + (u % 9));
     }
     double cycleMs = elapsedMs();
+    unmuteOutput();
     printRow("closeRoad + reopenRoad cycles x 10,000", N_OPS * 2, cycleMs);
 
-    // Phase B: Dijkstra re-routing after each closure 
-    // Report 500 incidents and dispatch after each road change
+    // Phase B: Dijkstra re-routing after each closure
     const int N_ROUTE = 500;
+    muteOutput();
     startTimer();
     for (int i = 0; i < N_ROUTE; i++) {
         d.tick(1);
         int inc = d.reportIncident(MEDICAL, (i * 3) % 50, 5);
         d.autoDispatch();
         d.resolveIncident(inc);
-        // close a different edge each time to force rerouting
         int u = (i * 11) % 49;
         d.closeRoad(u, (u + 1) % 50);
         d.reopenRoad(u, (u + 1) % 50, 1 + (u % 9));
     }
     double rerouteMs = elapsedMs();
+    unmuteOutput();
     printRow("dispatch + reroute after closure x 500", N_ROUTE, rerouteMs);
 
+    muteOutput();
     destroyGraph(g);
+    unmuteOutput();
 }
 
 // -----------------------------------------------------------------------------
@@ -197,15 +216,18 @@ void benchmark_TemporalAnalytics() {
 
     const int N = 10000;
 
-    // Segment Tree 
+    // Segment Tree
     {
         SegmentTree st;
 
+        muteOutput();
         startTimer();
         for (int i = 0; i < N; i++) st.update(i % BUCKETS, +1);
         double updateMs = elapsedMs();
+        unmuteOutput();
         printRow("SegmentTree update x 10,000", N, updateMs);
 
+        muteOutput();
         startTimer();
         for (int i = 0; i < N; i++) {
             int l = i % BUCKETS;
@@ -213,6 +235,7 @@ void benchmark_TemporalAnalytics() {
             st.query(l, r);
         }
         double queryMs = elapsedMs();
+        unmuteOutput();
         printRow("SegmentTree range query x 10,000", N, queryMs);
     }
 
@@ -220,33 +243,41 @@ void benchmark_TemporalAnalytics() {
     {
         AVLTree avl;
 
+        muteOutput();
         startTimer();
         for (int i = 0; i < N; i++) avl.insert(i, i * 10);
         double insertMs = elapsedMs();
+        unmuteOutput();
         printRow("AVLTree insert x 10,000", N, insertMs);
 
         int buf[200];
+        muteOutput();
         startTimer();
         for (int i = 0; i < N; i++) avl.collectRange(i, i + 100, buf, 200);
         double rangeMs = elapsedMs();
+        unmuteOutput();
         printRow("AVLTree collectRange x 10,000", N, rangeMs);
 
         cout << "  AVL height after 10,000 inserts: " << avl.getTreeHeight()
              << "  (log2(10000) ≈ 13.3)\n\n";
     }
 
-    // Hash Table 
+    // Hash Table
     {
         HashTable ht(101);
 
+        muteOutput();
         startTimer();
         for (int i = 0; i < N; i++) ht.insert(i, i * 2);
         double htInsertMs = elapsedMs();
+        unmuteOutput();
         printRow("HashTable insert x 10,000", N, htInsertMs);
 
+        muteOutput();
         startTimer();
         for (int i = 0; i < N; i++) ht.lookup(i);
         double htLookupMs = elapsedMs();
+        unmuteOutput();
         printRow("HashTable lookup x 10,000", N, htLookupMs);
     }
 
@@ -260,9 +291,9 @@ void benchmark_TemporalAnalytics() {
         };
         char word[16];
 
+        muteOutput();
         startTimer();
         for (int i = 0; i < N; i++) {
-            // word = prefix + two-digit suffix → always lowercase letters only
             const char* p = prefixes[i % 10];
             int pi = 0;
             while (p[pi]) { word[pi] = p[pi]; pi++; }
@@ -272,11 +303,14 @@ void benchmark_TemporalAnalytics() {
             trie.insert(word);
         }
         double trieInsertMs = elapsedMs();
+        unmuteOutput();
         printRow("Trie insert x 10,000", N, trieInsertMs);
 
+        muteOutput();
         startTimer();
         for (int i = 0; i < N; i++) trie.startsWith(prefixes[i % 10]);
         double triePrefixMs = elapsedMs();
+        unmuteOutput();
         printRow("Trie startsWith x 10,000", N, triePrefixMs);
     }
 }
