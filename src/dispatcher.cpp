@@ -431,28 +431,63 @@ bool Dispatcher::autoDispatch() {
     // Step 2: Dijkstra from the incident location 
     DijkstraResult fromIncident = dijkstra(cityMap, inc.locationVertex);
 
-    // Step 3: Find the closest available unit
-    // Track separately so we can give a precise failure reason.
-    int bestUnitId    = -1;
-    int bestDist      = INF;
-    int availableCount  = 0;   // units that are free
-    int reachableCount  = 0;   // free units that can reach the incident
+    // Step 3: Find the best available unit.
+    // Pass 1 — prefer the correct unit type for this incident:
+    //   FIRE     -> FIRE_TRUCK
+    //   MEDICAL  -> AMBULANCE
+    //   CRIME    -> POLICE
+    //   ACCIDENT -> AMBULANCE (first responder)
+    // Pass 2 — if no matching type is reachable, fall back to any available unit.
+    UnitType preferred;
+    switch (inc.type) {
+        case FIRE:     preferred = FIRE_TRUCK; break;
+        case MEDICAL:  preferred = AMBULANCE;  break;
+        case CRIME:    preferred = POLICE;     break;
+        case ACCIDENT: preferred = AMBULANCE;  break;
+        default:       preferred = AMBULANCE;  break;
+    }
 
+    int bestUnitId   = -1;
+    int bestDist     = INF;
+    int availableCount = 0;
+
+    // Count all available units once (used in blocked-dispatch message)
+    for (int i = 0; i < MAX_UNITS; i++) {
+        if (units[i].active && units[i].available) availableCount++;
+    }
+
+    // Pass 1: matching type only
     for (int i = 0; i < MAX_UNITS; i++) {
         if (!units[i].active || !units[i].available) continue;
-        availableCount++;
+        if (units[i].type != preferred) continue;
 
         int uVertex = units[i].locationVertex;
-
-        // Fast connectivity gate before reading the distance
         if (!connectivity.connected(uVertex, inc.locationVertex)) continue;
-        reachableCount++;
 
         int d = fromIncident.dist[uVertex];
         if (d < bestDist) {
             bestDist   = d;
             bestUnitId = units[i].id;
         }
+    }
+
+    // Pass 2: fallback — any available reachable unit
+    if (bestUnitId == -1) {
+        for (int i = 0; i < MAX_UNITS; i++) {
+            if (!units[i].active || !units[i].available) continue;
+
+            int uVertex = units[i].locationVertex;
+            if (!connectivity.connected(uVertex, inc.locationVertex)) continue;
+
+            int d = fromIncident.dist[uVertex];
+            if (d < bestDist) {
+                bestDist   = d;
+                bestUnitId = units[i].id;
+            }
+        }
+        if (bestUnitId != -1)
+            cout << "[AUTO]     No " << unitTypeName(preferred)
+                 << " available — falling back to nearest unit.\n";
     }
 
     if (bestUnitId == -1) {
@@ -466,8 +501,9 @@ bool Dispatcher::autoDispatch() {
         return false;
     }
 
-    cout << "[AUTO]     Closest unit: ID " << bestUnitId
-         << " (distance " << bestDist << ")\n";
+    int* bestSlot = unitTable.lookup(bestUnitId);
+    cout << "[AUTO]     Closest " << unitTypeName(units[*bestSlot].type)
+         << ": ID " << bestUnitId << " (distance " << bestDist << ")\n";
 
     return dispatchUnit(bestUnitId, targetIncidentId);
 }
@@ -714,8 +750,10 @@ void Dispatcher::printStatus() const {
     }
 
     int openIncidents = 0;
+    int dispatched = 0;
     for (int i = 0; i < MAX_INCIDENTS; i++) {
         if (incidents[i].active && !incidents[i].resolved) openIncidents++;
+        if (incidents[i].active && incidents[i].assignedUnitId != -1) dispatched++;
     }
 
     cout << "\n--------------------------------------------------\n";
@@ -724,7 +762,7 @@ void Dispatcher::printStatus() const {
     cout << "  Units total    : " << unitCount        << "\n";
     cout << "  Units available: " << available        << "\n";
     cout << "  Open incidents : " << openIncidents    << "\n";
-    cout << "  Resolved       : " << resolvedCount    << "\n";
+    cout << "  Dispatched     : " << dispatched       << "\n";
     cout << "--------------------------------------------------\n\n";
 }
 

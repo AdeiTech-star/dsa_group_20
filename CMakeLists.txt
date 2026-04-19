@@ -76,3 +76,7 @@ target_link_libraries(test_dispatcher dispatcher_lib)
 # Benchmark
 add_executable(benchmark benchmark.cpp)
 target_link_libraries(benchmark dispatcher_lib)
+
+# Final Presentation Demo
+add_executable(demo demo.cpp)
+target_link_libraries(demo dispatcher_lib)

@@ -68,6 +68,14 @@ cmake --build .
 
 ## Running Tests
 
+Run all tests at once and save individual logs to `build/test_results/`:
+
+```bash
+bash run_tests.sh
+```
+
+Or run a specific test:
+
 ```bash
 ./build/test_graph
 ./build/test_hash_table
@@ -86,14 +94,15 @@ cmake --build .
 ./build/benchmark
 ```
 
-The benchmark runs three timed scenarios:
-1. 10,000 incident reports and dispatches (~95ms)
-2. 500 segment tree window queries (~4ms)
-3. 100 DSU road closure/reopen cycles (~12ms)
+The benchmark runs three timed scenarios (~80,000+ total operations):
+
+1. **Mass Casualty** — 10,000 `reportIncident` calls + autoDispatch drain + 10,000 `resolveIncident` calls. Exercises MinHeap, HashTable, AVLTree, SegmentTree, UnionFind, and Dijkstra.
+2. **Road Closure Rerouting** — 10,000 `closeRoad`+`reopenRoad` cycles (UnionFind full rebuild each time) + 500 dispatch+reroute iterations after each closure.
+3. **Temporal Analytics** — 10,000 operations each on SegmentTree (update + range query), AVLTree (insert + collectRange), HashTable (insert + lookup), and Trie (insert + prefix search). Each structure is measured in isolation.
 
 ## Memory
 
-Verified with Valgrind — zero memory leaks, zero errors (see `docs/valgrind.log`).
+Verified with Valgrind — zero memory leaks, zero errors (see `build/valgrind.log`).
 
 ## Team
 
