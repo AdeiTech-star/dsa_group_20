@@ -6,40 +6,39 @@ using namespace std;
 //  CONSTRUCTOR / DESTRUCTOR
 // -----------------------------------------------------------------------------
 
-Dispatcher::Dispatcher(Graph& g)
+Dispatcher::Dispatcher(Graph& g, int maxIncidents)
     : cityMap(g),
-      incidentQueue(MAX_INCIDENTS),
+      incidentQueue(maxIncidents),
       incidentTable(101),
       unitTable(53),
       unitCount(0),
+      incidentCapacity(maxIncidents),
       incidentCount(0),
       nextIncidentId(1),
       totalResponseTime(0),
       resolvedCount(0),
       currentTime(0)
 {
-    // Blank out all unit and incident slots
+    incidents = new Incident[incidentCapacity];
+
     for (int i = 0; i < MAX_UNITS; i++) {
         units[i].active    = false;
         units[i].available = false;
     }
-    for (int i = 0; i < MAX_INCIDENTS; i++) {
+    for (int i = 0; i < incidentCapacity; i++) {
         incidents[i].active   = false;
         incidents[i].resolved = false;
     }
 
-    // Zero the visit-count analytics array
     for (int i = 0; i < MAX_VERTICES; i++) {
         visitCount[i] = 0;
     }
 
-    // Build the initial connectivity map from whatever edges are in the graph
     connectivity.buildFromGraph(cityMap);
 }
 
 Dispatcher::~Dispatcher() {
-    // All members manage their own memory via their own destructors.
-    // Nothing extra to free here.
+    delete[] incidents;
 }
 
 // -----------------------------------------------------------------------------
@@ -234,7 +233,7 @@ void Dispatcher::printUnits() const {
 //
 // Returns the new incident's ID, or -1 on failure.
 int Dispatcher::reportIncident(IncidentType type, int locationVertex, int severity) {
-    if (incidentCount >= MAX_INCIDENTS) {
+    if (incidentCount >= incidentCapacity) {
         cout << "Error: incident log is full.\n";
         return -1;
     }
@@ -249,7 +248,7 @@ int Dispatcher::reportIncident(IncidentType type, int locationVertex, int severi
 
     // Find an empty slot
     int slot = -1;
-    for (int i = 0; i < MAX_INCIDENTS; i++) {
+    for (int i = 0; i < incidentCapacity; i++) {
         if (!incidents[i].active) { slot = i; break; }
     }
     if (slot == -1) return -1;
@@ -557,7 +556,7 @@ bool Dispatcher::resolveIncident(int incidentId) {
 
 void Dispatcher::printIncidents() const {
     cout << "\n--- Incidents (" << incidentCount << ") ---\n";
-    for (int i = 0; i < MAX_INCIDENTS; i++) {
+    for (int i = 0; i < incidentCapacity; i++) {
         if (!incidents[i].active) continue;
         cout << "  [#" << incidents[i].id << "] "
              << incidentTypeName(incidents[i].type)
@@ -593,7 +592,7 @@ bool Dispatcher::closeRoad(int srcId, int destId) {
     cout << "[ROAD]     Connectivity map rebuilt.\n";
 
     // Warn about any active dispatches that are now cut off
-    for (int i = 0; i < MAX_INCIDENTS; i++) {
+    for (int i = 0; i < incidentCapacity; i++) {
         if (!incidents[i].active)           continue;
         if (incidents[i].resolved)          continue;
         if (incidents[i].assignedUnitId == -1) continue;
@@ -671,11 +670,12 @@ void Dispatcher::listIncidentsInWindow(int startMinute, int endMinute) const {
     cout << "\n  Incidents in window [T+" << startMinute
          << ", T+" << endMinute << "]:\n";
 
-    int ids[MAX_INCIDENTS];
-    int found = incidentLog.collectRange(startMinute, endMinute, ids, MAX_INCIDENTS);
+    int* ids = new int[incidentCapacity];
+    int found = incidentLog.collectRange(startMinute, endMinute, ids, incidentCapacity);
 
     if (found == 0) {
         cout << "    (none)\n";
+        delete[] ids;
         return;
     }
 
@@ -692,6 +692,7 @@ void Dispatcher::listIncidentsInWindow(int startMinute, int endMinute) const {
             cout << "  unit=" << inc.assignedUnitId;
         cout << (inc.resolved ? "  [resolved]" : "  [open]") << "\n";
     }
+    delete[] ids;
 }
 
 // getBusiestIntersection
@@ -751,7 +752,7 @@ void Dispatcher::printStatus() const {
 
     int openIncidents = 0;
     int dispatched = 0;
-    for (int i = 0; i < MAX_INCIDENTS; i++) {
+    for (int i = 0; i < incidentCapacity; i++) {
         if (incidents[i].active && !incidents[i].resolved) openIncidents++;
         if (incidents[i].active && incidents[i].assignedUnitId != -1) dispatched++;
     }

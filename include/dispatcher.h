@@ -10,9 +10,8 @@
 #include "trie.h"
 #include "dijkstra.h"
 
-// Limits 
-const int MAX_UNITS     = 50;
-const int MAX_INCIDENTS = 10500;  // supports 10,000-op benchmark + headroom
+// Limits
+const int MAX_UNITS = 100;  // raised to support larger benchmarks
 
 // Enumerations
 enum UnitType     { POLICE = 0, AMBULANCE = 1, FIRE_TRUCK = 2 };
@@ -72,9 +71,10 @@ private:
     Unit     units[MAX_UNITS];
     int      unitCount;
 
-    Incident incidents[MAX_INCIDENTS];
-    int      incidentCount;
-    int      nextIncidentId;
+    Incident* incidents;        // heap-allocated; size = incidentCapacity
+    int       incidentCapacity;
+    int       incidentCount;
+    int       nextIncidentId;
 
     // analytics 
     int       visitCount[MAX_VERTICES]; // how many routes passed through each vertex
@@ -95,7 +95,7 @@ private:
     void toLowerCopy(const char* src, char* dst, int maxLen) const;
 
 public:
-    explicit Dispatcher(Graph& g);
+    explicit Dispatcher(Graph& g, int maxIncidents = 10500);
     ~Dispatcher();
 
     // simulation clock 
