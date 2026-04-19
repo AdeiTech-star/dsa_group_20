@@ -124,9 +124,6 @@ void benchmark_MassCasualty() {
     unmuteOutput();
     printRow("resolveIncident", resolveCount, resolveMs);
 
-    cout << "  Avg response time after bulk resolve: "
-         << d.getAvgResponseTime() << " min\n\n";
-
     // Analytics summary — exercises countAllIncidentsInWindow (AVLTree) and
     // countIncidentsInWindow (SegmentTree) so both appear in benchmark output
     d.printAnalytics();
