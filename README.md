@@ -17,61 +17,99 @@ Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912)
 ## Project Structure
 ```
 .
+urban-irs/
+├── include/
+│   ├── hash_table.h
+│   ├── graph.h
+│   ├── union_find.h
+│   ├── min_heap.h
+│   ├── avl_tree.h
+│   ├── segment_tree.h
+│   ├── trie.h
+│   └── dispatcher.h
 ├── src/
-│   ├── main.cpp
-│   ├── dispatcher.cpp/.h
-│   ├── graph.cpp/.h
-│   ├── min_heap.cpp/.h
-│   ├── hash_table.cpp/.h
-│   ├── avl_tree.cpp/.h
-│   ├── segment_tree.cpp/.h
-│   ├── union_find.cpp/.h
-│   └── trie.cpp/.h
+│   ├── hash_table.cpp
+│   ├── graph.cpp
+│   ├── union_find.cpp
+│   ├── min_heap.cpp
+│   ├── avl_tree.cpp
+│   ├── segment_tree.cpp
+│   ├── trie.cpp
+│   ├── dispatcher.cpp
+│   └── main.cpp
 ├── tests/
-│   ├── test_graph.cpp
-│   ├── test_min_heap.cpp
 │   ├── test_hash_table.cpp
+│   ├── test_graph.cpp
+│   ├── test_union_find.cpp
+│   ├── test_min_heap.cpp
 │   ├── test_avl_tree.cpp
 │   ├── test_segment_tree.cpp
-│   ├── test_union_find.cpp
 │   ├── test_trie.cpp
 │   └── test_dispatcher.cpp
 ├── data/
 │   └── kigali_map.txt
 ├── docs/
 │   └── proposal.pdf
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── Makefile
 └── README.md
 ```
 
 ## Building
 
-> _To be updated once the build system is finalized._
+
 ```bash
-make
+mkdir build && cd build
+cmake ..
+cmake --build .
 ```
 
-## Running
+## Running Tests
 
-> _To be updated with full usage instructions._
+Run all tests at once and save individual logs to `build/test_results/`:
+
 ```bash
-./urban_irs
+bash run_tests.sh
 ```
 
-## Testing
+Or run a specific test:
 
-> _To be updated once the test harness is finalized._
 ```bash
-make test
+./build/test_graph
+./build/test_hash_table
+./build/test_min_heap
+./build/test_union_find
+./build/test_avl_tree
+./build/test_segment_tree
+./build/test_trie
+./build/test_dijkstra
+./build/test_dispatcher
 ```
+
+## Running Benchmark
+
+```bash
+./build/benchmark
+```
+
+The benchmark runs three timed scenarios (~80,000+ total operations):
+
+1. **Mass Casualty** — 10,000 `reportIncident` calls + autoDispatch drain + 10,000 `resolveIncident` calls. Exercises MinHeap, HashTable, AVLTree, SegmentTree, UnionFind, and Dijkstra.
+2. **Road Closure Rerouting** — 10,000 `closeRoad`+`reopenRoad` cycles (UnionFind full rebuild each time) + 500 dispatch+reroute iterations after each closure.
+3. **Temporal Analytics** — 10,000 operations each on SegmentTree (update + range query), AVLTree (insert + collectRange), HashTable (insert + lookup), and Trie (insert + prefix search). Each structure is measured in isolation.
+
+## Memory
+
+Verified with Valgrind — zero memory leaks, zero errors (see `build/valgrind.log`).
 
 ## Team
 
 | Name | Andrew ID |
 |------|-----------|
 | Kavini Nzau | knzau |
-| Christian Abiyingoma | cabiying |
 | Nthabiseng Thema | nthema |
+| Christian Abiyingoma | cabiying |
 | Regis Ndahiro Ngoga | rndahiro |
 
-**Course:** Data Structures & Algorithms — CMU Africa, March 2026

@@ -1,1 +1,14 @@
+<<<<<<< HEAD
 build
+=======
+build/
+*.o
+*.out
+*.exe
+.vscode/
+.DS_Store
+build/
+*.dSYM/
+run_dijkstra_tests
+run_trie_tests
+>>>>>>> dev

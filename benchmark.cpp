@@ -1,0 +1,350 @@
+// benchmark.cpp
+// Urban Incident Response System — Performance Benchmarks
+//
+// Satisfies the spec requirement:
+//   "Benchmark at least 3 operational scenarios with 10^4+ operations"
+//
+// Three scenarios are measured:
+//   1. Mass Casualty    — 10,000 reportIncident + autoDispatch calls
+//   2. Road Closure     — 10,000 closeRoad + rebuildFromGraph (UnionFind) calls
+//   3. Temporal Analytics — 10,000 SegmentTree updates + 10,000 range queries
+//
+// Build:  cmake --build build --target benchmark
+// Run:    ./build/benchmark
+
+#include "include/dispatcher.h"
+#include "include/graph.h"
+#include "include/segment_tree.h"
+#include "include/union_find.h"
+#include <iostream>
+#include <fstream>
+#include <chrono>
+using namespace std;
+using namespace std::chrono;
+
+// Silence / restore cout around noisy library calls
+static ofstream devNull("/dev/null");
+static streambuf* realCout = nullptr;
+void muteOutput()   { realCout = cout.rdbuf(devNull.rdbuf()); }
+void unmuteOutput() { if (realCout) cout.rdbuf(realCout); }
+
+// Timing helpers
+
+static high_resolution_clock::time_point tStart;
+
+void startTimer() {
+    tStart = high_resolution_clock::now();
+}
+
+// Returns elapsed milliseconds since startTimer()
+double elapsedMs() {
+    auto now = high_resolution_clock::now();
+    return duration_cast<microseconds>(now - tStart).count() / 1000.0;
+}
+
+void printRow(const char* label, long ops, double ms) {
+    double perOp = (ops > 0) ? (ms * 1000.0 / ops) : 0.0;
+    cout << "  " << label << "\n";
+    cout << "    Operations : " << ops     << "\n";
+    cout << "    Total time : " << ms      << " ms\n";
+    cout << "    Per op     : " << perOp   << " us\n\n";
+}
+
+// Shared city graph: 50-vertex ring with cross-links 
+Graph buildBenchGraph() {
+    Graph g;
+    initGraph(g);
+    const int N = 50;
+    for (int i = 0; i < N; i++) addVertex(g, i);
+    for (int i = 0; i < N; i++) addEdge(g, i, (i + 1) % N, 1 + (i % 9));
+    for (int i = 0; i < N; i += 5) addEdge(g, i, (i + 10) % N, 3);
+    return g;
+}
+
+// -----------------------------------------------------------------------------
+//  SCENARIO 1 — Mass Casualty Event
+//
+//  Measures:
+//    - reportIncident throughput (hits MinHeap + HashTable + AVLTree + SegTree)
+//    - autoDispatch throughput  (hits MinHeap + UnionFind + Dijkstra + HashTable)
+//    - resolveIncident throughput
+//
+//  Total operations: 10,000 report + ~5,000 dispatch + ~5,000 resolve = ~20,000
+// -----------------------------------------------------------------------------
+void benchmark_MassCasualty(int N) {
+    cout << "-----------------------------------------------------\n";
+    cout << "  SCENARIO 1: MASS CASUALTY EVENT\n";
+    cout << "------------------------------------------------------\n\n";
+
+    muteOutput();
+    Graph g = buildBenchGraph();
+    Dispatcher d(g, N + 500);
+
+    // Scale units with N: 1 unit per 1,000 incidents, capped at MAX_UNITS (100)
+    const int N_UNITS = (N / 1000 < 20) ? 20 : (N / 1000 > MAX_UNITS ? MAX_UNITS : N / 1000);
+    const char* prefix[3] = {"police", "ambulance", "firetruck"};
+    UnitType types[3] = {POLICE, AMBULANCE, FIRE_TRUCK};
+    char uname[32];
+    for (int i = 0; i < N_UNITS; i++) {
+        const char* p = prefix[i % 3];
+        int pi = 0;
+        while (p[pi]) { uname[pi] = p[pi]; pi++; }
+        uname[pi++] = '0' + (i / 10) % 10;
+        uname[pi++] = '0' + i % 10;
+        uname[pi]   = '\0';
+        d.addUnit(i + 1, uname, types[i % 3], (i * 2) % 50);
+    }
+
+    IncidentType itypes[4] = {CRIME, MEDICAL, FIRE, ACCIDENT};
+
+    startTimer();
+    for (int i = 0; i < N; i++) {
+        d.tick(1);
+        d.reportIncident(itypes[i % 4], i % 50, 1 + (i % 10));
+    }
+    double reportMs = elapsedMs();
+    unmuteOutput();
+    char label[64];
+    int len = 0;
+    const char* base = "reportIncident x ";
+    while (base[len]) { label[len] = base[len]; len++; }
+    // append N as decimal
+    char num[16]; int ni = 0, tmp = N;
+    if (tmp == 0) { num[ni++] = '0'; }
+    else { while (tmp) { num[ni++] = '0' + tmp % 10; tmp /= 10; } }
+    for (int i = ni - 1; i >= 0; i--) label[len++] = num[i];
+    label[len] = '\0';
+    printRow(label, N, reportMs);
+
+    long dispatchCount = 0;
+    muteOutput();
+    startTimer();
+    while (d.autoDispatch()) dispatchCount++;
+    double dispatchMs = elapsedMs();
+    unmuteOutput();
+    printRow("autoDispatch (drain queue)", dispatchCount, dispatchMs);
+
+    long resolveCount = 0;
+    muteOutput();
+    startTimer();
+    d.tick(50);
+    for (int i = 1; i <= N; i++) {
+        if (d.resolveIncident(i)) resolveCount++;
+    }
+    double resolveMs = elapsedMs();
+    unmuteOutput();
+    printRow("resolveIncident", resolveCount, resolveMs);
+
+    d.printAnalytics();
+
+    muteOutput();
+    destroyGraph(g);
+    unmuteOutput();
+}
+
+// -----------------------------------------------------------------------------
+//  SCENARIO 2 — Road Closure Rerouting
+//
+//  Measures:
+//    - closeRoad throughput  (Graph edge removal + UnionFind full rebuild)
+//    - reopenRoad throughput (Graph edge insertion + UnionFind full rebuild)
+//    - Dijkstra re-routing after closures
+//
+//  Total operations: 10,000 close + 10,000 reopen = 20,000
+// -----------------------------------------------------------------------------
+void benchmark_RoadClosure(int N) {
+    cout << "-----------------------------------------------------\n";
+    cout << "  SCENARIO 2: ROAD CLOSURE REROUTING\n";
+    cout << "------------------------------------------------------\n\n";
+
+    // Route scenario uses N as close+reopen cycles; reroute uses N/20 dispatches
+    const int N_ROUTE = N / 20;
+
+    muteOutput();
+    Graph g = buildBenchGraph();
+    Dispatcher d(g, N_ROUTE + 500);
+
+    d.addUnit(1, "ambulance", AMBULANCE, 0);
+    d.reportIncident(FIRE, 25, 9);
+
+    // Phase A: N close + reopen cycles
+    startTimer();
+    for (int i = 0; i < N; i++) {
+        int u = (i * 7) % 49;
+        int v = (u + 1) % 50;
+        d.closeRoad(u, v);
+        d.tick(1);
+        d.reopenRoad(u, v, 1 + (u % 9));
+    }
+    double cycleMs = elapsedMs();
+    unmuteOutput();
+    printRow("closeRoad + reopenRoad cycles", N * 2, cycleMs);
+
+    // Phase B: N/20 dispatch + reroute cycles
+    muteOutput();
+    startTimer();
+    for (int i = 0; i < N_ROUTE; i++) {
+        d.tick(1);
+        int inc = d.reportIncident(MEDICAL, (i * 3) % 50, 5);
+        d.autoDispatch();
+        d.resolveIncident(inc);
+        int u = (i * 11) % 49;
+        d.closeRoad(u, (u + 1) % 50);
+        d.reopenRoad(u, (u + 1) % 50, 1 + (u % 9));
+    }
+    double rerouteMs = elapsedMs();
+    unmuteOutput();
+    printRow("dispatch + reroute after closure", N_ROUTE, rerouteMs);
+
+    muteOutput();
+    destroyGraph(g);
+    unmuteOutput();
+}
+
+// -----------------------------------------------------------------------------
+//  SCENARIO 3 — Temporal Analytics
+//
+//  Measures each data structure in isolation so we can quote individual
+//  complexities in the report.
+//
+//  Segment Tree : 10,000 point updates + 10,000 range queries  → O(log n) each
+//  AVL Tree     : 10,000 inserts       + 10,000 countRange()   → O(log n) each
+//  Hash Table   : 10,000 inserts       + 10,000 lookups        → O(1) avg
+//  Trie         : 10,000 inserts       + 10,000 prefix queries → O(|word|)
+//
+//  Total operations: 80,000
+// -----------------------------------------------------------------------------
+void benchmark_TemporalAnalytics(int N) {
+    cout << "-----------------------------------------------------\n";
+    cout << "  SCENARIO 3: TEMPORAL ANALYTICS\n";
+    cout << "-----------------------------------------------------\n\n";
+
+    // Segment Tree
+    {
+        SegmentTree st;
+
+        muteOutput();
+        startTimer();
+        for (int i = 0; i < N; i++) st.update(i % BUCKETS, +1);
+        double updateMs = elapsedMs();
+        unmuteOutput();
+        printRow("SegmentTree update", N, updateMs);
+
+        muteOutput();
+        startTimer();
+        for (int i = 0; i < N; i++) {
+            int l = i % BUCKETS;
+            int r = (l + 100 < BUCKETS) ? l + 100 : BUCKETS - 1;
+            st.query(l, r);
+        }
+        double queryMs = elapsedMs();
+        unmuteOutput();
+        printRow("SegmentTree range query", N, queryMs);
+    }
+
+    // AVL Tree
+    {
+        AVLTree avl;
+
+        muteOutput();
+        startTimer();
+        for (int i = 0; i < N; i++) avl.insert(i, i * 10);
+        double insertMs = elapsedMs();
+        unmuteOutput();
+        printRow("AVLTree insert", N, insertMs);
+
+        int buf[200];
+        muteOutput();
+        startTimer();
+        for (int i = 0; i < N; i++) avl.collectRange(i, i + 100, buf, 200);
+        double rangeMs = elapsedMs();
+        unmuteOutput();
+        printRow("AVLTree collectRange", N, rangeMs);
+
+        // log2(N) approximation: count bits
+        double log2N = 0; int tmp2 = N; while (tmp2 > 1) { log2N += 1.0; tmp2 >>= 1; }
+        cout << "  AVL height after " << N << " inserts: " << avl.getTreeHeight()
+             << "  (log2(" << N << ") ≈ " << log2N << ")\n\n";
+    }
+
+    // Hash Table
+    {
+        HashTable ht(101);
+
+        muteOutput();
+        startTimer();
+        for (int i = 0; i < N; i++) ht.insert(i, i * 2);
+        double htInsertMs = elapsedMs();
+        unmuteOutput();
+        printRow("HashTable insert", N, htInsertMs);
+
+        muteOutput();
+        startTimer();
+        for (int i = 0; i < N; i++) ht.lookup(i);
+        double htLookupMs = elapsedMs();
+        unmuteOutput();
+        printRow("HashTable lookup", N, htLookupMs);
+    }
+
+    // Trie 
+    {
+        Trie trie;
+        // Build 10,000 unique lowercase words: "worda", "wordb", ... cycling
+        const char* prefixes[10] = {
+            "alpha","bravo","charlie","delta","echo",
+            "foxtrot","golf","hotel","india","juliet"
+        };
+        char word[16];
+
+        muteOutput();
+        startTimer();
+        for (int i = 0; i < N; i++) {
+            const char* p = prefixes[i % 10];
+            int pi = 0;
+            while (p[pi]) { word[pi] = p[pi]; pi++; }
+            word[pi++] = 'a' + (i / 10) % 26;
+            word[pi++] = 'a' + i % 26;
+            word[pi]   = '\0';
+            trie.insert(word);
+        }
+        double trieInsertMs = elapsedMs();
+        unmuteOutput();
+        printRow("Trie insert", N, trieInsertMs);
+
+        muteOutput();
+        startTimer();
+        for (int i = 0; i < N; i++) trie.startsWith(prefixes[i % 10]);
+        double triePrefixMs = elapsedMs();
+        unmuteOutput();
+        printRow("Trie startsWith", N, triePrefixMs);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Usage: ./build/benchmark [N]
+//   N — number of operations per scenario (default 10000, max 100000)
+// -----------------------------------------------------------------------------
+int main(int argc, char* argv[]) {
+    int N = 10000;
+    if (argc >= 2) {
+        int parsed = 0;
+        for (int i = 0; argv[1][i] >= '0' && argv[1][i] <= '9'; i++)
+            parsed = parsed * 10 + (argv[1][i] - '0');
+        if (parsed > 0 && parsed <= 100000) N = parsed;
+    }
+
+    cout << "\n";
+    cout << "######################################################\n";
+    cout << "  Urban Incident Response System — Benchmarks\n";
+    cout << "  Operations per scenario : " << N << "\n";
+    cout << "######################################################\n\n";
+
+    benchmark_MassCasualty(N);
+    benchmark_RoadClosure(N);
+    benchmark_TemporalAnalytics(N);
+
+    cout << "######################################################\n";
+    cout << "  Benchmark complete.\n";
+    cout << "######################################################\n\n";
+    return 0;
+}
