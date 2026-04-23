@@ -144,7 +144,8 @@ void Trie::printWordsRecursive(TrieNode* node, char buffer[], int depth) const {
         buffer[depth] = '\0';
         cout << "  " << buffer << "\n";
     }
-
+    // go through all 26 possible children
+    // if a child exists, add its character and continue
     for (int i = 0; i < ALPHABET_SIZE; i++) {
         if (node->children[i] != nullptr) {
             buffer[depth] = (char)('a' + i);
