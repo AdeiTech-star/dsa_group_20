@@ -35,7 +35,6 @@ Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912)
 │   ├── dispatcher.cpp
 │   ├── graph.cpp
 │   ├── hash_table.cpp
-│   ├── main.cpp
 │   ├── min_heap.cpp
 │   ├── segment_tree.cpp
 │   ├── trie.cpp
