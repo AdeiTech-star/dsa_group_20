@@ -1,3 +1,0 @@
-/mnt/c/Users/nthab/OneDrive/Desktop/MSIT-2025/Semester 2 - Spring/DSA/Project/dsa_group_20/build/CMakeFiles/DSA_GROUP_20.dir
-/mnt/c/Users/nthab/OneDrive/Desktop/MSIT-2025/Semester 2 - Spring/DSA/Project/dsa_group_20/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/nthab/OneDrive/Desktop/MSIT-2025/Semester 2 - Spring/DSA/Project/dsa_group_20/build/CMakeFiles/rebuild_cache.dir
