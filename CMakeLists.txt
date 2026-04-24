@@ -32,10 +32,6 @@ add_library(dispatcher_lib
 )
 
 # the executables
-# The entry point for actual program running
-add_executable(urban_irs src/main.cpp)
-target_link_libraries(urban_irs graph_lib hash_table_lib min_heap_lib)
-
 #this is for all executables for each test file
 # Min-Heap Test
 add_executable(test_min_heap tests/test_min_heap.cpp)
