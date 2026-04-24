@@ -119,22 +119,17 @@ void benchmark_MassCasualty(int N) {
     long dispatchCount = 0;
     muteOutput();
     startTimer();
-    while (d.autoDispatch()) dispatchCount++;
+    for (int i = 1; i <= N; i++) {
+        d.tick(1);
+        if (d.autoDispatch()) {
+            dispatchCount++;
+            d.resolveIncident(i);  // free the unit so next dispatch can proceed
+        }
+    }
     double dispatchMs = elapsedMs();
     unmuteOutput();
-    printRow("autoDispatch (drain queue)", dispatchCount, dispatchMs);
-
-    long resolveCount = 0;
-    muteOutput();
-    startTimer();
-    d.tick(50);
-    for (int i = 1; i <= N; i++) {
-        if (d.resolveIncident(i)) resolveCount++;
-    }
-    double resolveMs = elapsedMs();
-    unmuteOutput();
-    printRow("resolveIncident", resolveCount, resolveMs);
-
+    printRow("autoDispatch + resolve cycle", dispatchCount, dispatchMs);
+ 
     d.printAnalytics();
 
     muteOutput();
@@ -158,7 +153,7 @@ void benchmark_RoadClosure(int N) {
     cout << "------------------------------------------------------\n\n";
 
     // Route scenario uses N as close+reopen cycles; reroute uses N/20 dispatches
-    const int N_ROUTE = N / 20;
+    const int N_ROUTE = N;
 
     muteOutput();
     Graph g = buildBenchGraph();
