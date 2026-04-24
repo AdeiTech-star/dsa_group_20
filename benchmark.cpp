@@ -5,9 +5,9 @@
 //   "Benchmark at least 3 operational scenarios with 10^4+ operations"
 //
 // Three scenarios are measured:
-//   1. Mass Casualty    — 10,000 reportIncident + autoDispatch calls
-//   2. Road Closure     — 10,000 closeRoad + rebuildFromGraph (UnionFind) calls
-//   3. Temporal Analytics — 10,000 SegmentTree updates + 10,000 range queries
+//   1. Mass Casualty    — 10,000 reportIncident + 10,000 dispatch+resolve cycles
+//   2. Road Closure     — 10,000 close+reopen cycles + 10,000 dispatch+reroute cycles
+//   3. Temporal Analytics — 10,000 ops per structure (SegTree, AVL, Hash, Trie)
 //
 // Build:  cmake --build build --target benchmark
 // Run:    ./build/benchmark
@@ -66,10 +66,9 @@ Graph buildBenchGraph() {
 //
 //  Measures:
 //    - reportIncident throughput (hits MinHeap + HashTable + AVLTree + SegTree)
-//    - autoDispatch throughput  (hits MinHeap + UnionFind + Dijkstra + HashTable)
-//    - resolveIncident throughput
+//    - dispatch + resolve cycle  (hits MinHeap + UnionFind + Dijkstra + HashTable)
 //
-//  Total operations: 10,000 report + ~5,000 dispatch + ~5,000 resolve = ~20,000
+//  Total operations: 10,000 report + 10,000 dispatch+resolve = 20,000
 // -----------------------------------------------------------------------------
 void benchmark_MassCasualty(int N) {
     cout << "-----------------------------------------------------\n";
@@ -78,7 +77,7 @@ void benchmark_MassCasualty(int N) {
 
     muteOutput();
     Graph g = buildBenchGraph();
-    Dispatcher d(g, N + 500);
+    Dispatcher d(g, 2 * N + 500);
 
     // Scale units with N: 1 unit per 1,000 incidents, capped at MAX_UNITS (100)
     const int N_UNITS = (N / 1000 < 20) ? 20 : (N / 1000 > MAX_UNITS ? MAX_UNITS : N / 1000);
@@ -97,6 +96,7 @@ void benchmark_MassCasualty(int N) {
 
     IncidentType itypes[4] = {CRIME, MEDICAL, FIRE, ACCIDENT};
 
+    // Phase A: measure N reportIncident operations
     startTimer();
     for (int i = 0; i < N; i++) {
         d.tick(1);
@@ -116,20 +116,28 @@ void benchmark_MassCasualty(int N) {
     label[len] = '\0';
     printRow(label, N, reportMs);
 
+    // Drain the backlog of N incidents so we start Phase B from a clean queue
+    muteOutput();
+    while (d.autoDispatch()) { d.tick(1); }
+    for (int i = 1; i <= N; i++) d.resolveIncident(i);
+    unmuteOutput();
+
+    // Phase B: measure N full dispatch cycles end-to-end
     long dispatchCount = 0;
     muteOutput();
     startTimer();
-    for (int i = 1; i <= N; i++) {
+    for (int i = 0; i < N; i++) {
         d.tick(1);
+        int incId = d.reportIncident(itypes[i % 4], i % 50, 1 + (i % 10));
         if (d.autoDispatch()) {
             dispatchCount++;
-            d.resolveIncident(i);  // free the unit so next dispatch can proceed
+            d.resolveIncident(incId);
         }
     }
     double dispatchMs = elapsedMs();
     unmuteOutput();
-    printRow("autoDispatch + resolve cycle", dispatchCount, dispatchMs);
- 
+    printRow("dispatch + resolve cycle", dispatchCount, dispatchMs);
+
     d.printAnalytics();
 
     muteOutput();
@@ -145,14 +153,13 @@ void benchmark_MassCasualty(int N) {
 //    - reopenRoad throughput (Graph edge insertion + UnionFind full rebuild)
 //    - Dijkstra re-routing after closures
 //
-//  Total operations: 10,000 close + 10,000 reopen = 20,000
+//  Total operations: 10,000 close + 10,000 reopen + 10,000 reroute = 30,000
 // -----------------------------------------------------------------------------
 void benchmark_RoadClosure(int N) {
     cout << "-----------------------------------------------------\n";
     cout << "  SCENARIO 2: ROAD CLOSURE REROUTING\n";
     cout << "------------------------------------------------------\n\n";
 
-    // Route scenario uses N as close+reopen cycles; reroute uses N/20 dispatches
     const int N_ROUTE = N;
 
     muteOutput();
@@ -175,7 +182,7 @@ void benchmark_RoadClosure(int N) {
     unmuteOutput();
     printRow("closeRoad + reopenRoad cycles", N * 2, cycleMs);
 
-    // Phase B: N/20 dispatch + reroute cycles
+    // Phase B: N dispatch + reroute cycles
     muteOutput();
     startTimer();
     for (int i = 0; i < N_ROUTE; i++) {
