@@ -4,61 +4,67 @@ An emergency dispatch simulation for Kigali, Rwanda, built entirely in C++ with 
 
 ## Overview
 
-Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912), and fire brigade (111) services across a hilly, rapidly growing city of 1.7M+ residents. This project simulates that coordination using seven from-scratch data structures — weighted graph, min-heap, hash table, AVL tree, segment tree, Union-Find, and trie.
+Kigali's emergency infrastructure coordinates police (112), SAMU ambulance (912), and fire brigade (111) services across a hilly, rapidly growing city of 1.7M+ residents. This project simulates that coordination using seven from-scratch data structures — weighted graph, min-heap, hash table, AVL tree, segment tree, Union-Find, and trie — with Dijkstra's algorithm for shortest-path routing and a Dispatcher class orchestrating the whole system.
 
 ### Core Capabilities
 
 - **Dynamic city map** — add/remove roads at runtime with immediate connectivity tracking
-- **Incident triage** — priority queue ensures the most critical incident is always dispatched first
-- **Optimal routing** — Dijkstra's algorithm computes shortest paths; Union-Find gates unreachable dispatches
+- **Incident triage** — min-heap priority queue ensures the most critical incident is always dispatched first
+- **Optimal routing** — Dijkstra's algorithm computes shortest paths; Union-Find gates unreachable dispatches in near-O(1) before Dijkstra runs
+- **Unit capability matching** — fire trucks dispatched to fires, ambulances to medical and accidents, police to crimes, with fallback to any available reachable unit
 - **Temporal analytics** — AVL tree range queries and segment tree window counts over incident logs
-- **Prefix search** — trie-based autocomplete for unit and intersection names
+- **Prefix search** — trie-based lookup on unit names
 
 ## Project Structure
+
 ```
 .
-urban-irs/
 ├── include/
-│   ├── hash_table.h
-│   ├── graph.h
-│   ├── union_find.h
-│   ├── min_heap.h
 │   ├── avl_tree.h
+│   ├── dijkstra.h
+│   ├── dispatcher.h
+│   ├── graph.h
+│   ├── hash_table.h
+│   ├── min_heap.h
 │   ├── segment_tree.h
 │   ├── trie.h
-│   └── dispatcher.h
+│   └── union_find.h
 ├── src/
-│   ├── hash_table.cpp
-│   ├── graph.cpp
-│   ├── union_find.cpp
-│   ├── min_heap.cpp
 │   ├── avl_tree.cpp
+│   ├── dijkstra.cpp
+│   ├── dispatcher.cpp
+│   ├── graph.cpp
+│   ├── hash_table.cpp
+│   ├── main.cpp
+│   ├── min_heap.cpp
 │   ├── segment_tree.cpp
 │   ├── trie.cpp
-│   ├── dispatcher.cpp
-│   └── main.cpp
+│   └── union_find.cpp
 ├── tests/
-│   ├── test_hash_table.cpp
-│   ├── test_graph.cpp
-│   ├── test_union_find.cpp
-│   ├── test_min_heap.cpp
 │   ├── test_avl_tree.cpp
+│   ├── test_dijkstra.cpp
+│   ├── test_dispatcher.cpp
+│   ├── test_graph.cpp
+│   ├── test_hash_table.cpp
+│   ├── test_min_heap.cpp
 │   ├── test_segment_tree.cpp
 │   ├── test_trie.cpp
-│   └── test_dispatcher.cpp
-├── data/
-│   └── kigali_map.txt
+│   └── test_union_find.cpp
 ├── docs/
-│   └── proposal.pdf
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── Makefile
+│   ├── DSA_PP.pdf          # project proposal
+│   ├── cppcheck.log        # static analysis log
+│   └── valgrind.log        # dynamic analysis log (no leaks)
+├── benchmark.cpp           # performance benchmark harness
+├── demo.cpp                # interactive dispatcher demo
+├── demo_midpoint_interactive.cpp   # midpoint demo script
+├── run_tests.sh            # build and run all tests
+├── .github/workflows/
+│   └── ci.yml              # GitHub Actions: build + test on every push
+├── CMakeLists.txt
 └── README.md
 ```
 
 ## Building
-
 
 ```bash
 mkdir build && cd build
@@ -88,28 +94,41 @@ Or run a specific test:
 ./build/test_dispatcher
 ```
 
-## Running Benchmark
+The full suite contains 255 unit tests across nine binaries, all passing.
+
+## Running the Demos
+
+```bash
+./build/demo                          # full interactive dispatcher demo
+./build/demo_midpoint_interactive     # midpoint-presentation demo
+```
+
+## Running the Benchmark
 
 ```bash
 ./build/benchmark
 ```
 
-The benchmark runs three timed scenarios (~80,000+ total operations):
+The benchmark runs three timed scenarios, each exceeding the 10,000-operation threshold:
 
-1. **Mass Casualty** — 10,000 `reportIncident` calls + autoDispatch drain + 10,000 `resolveIncident` calls. Exercises MinHeap, HashTable, AVLTree, SegmentTree, UnionFind, and Dijkstra.
-2. **Road Closure Rerouting** — 10,000 `closeRoad`+`reopenRoad` cycles (UnionFind full rebuild each time) + 500 dispatch+reroute iterations after each closure.
+1. **Mass Casualty** — 10,000 `reportIncident` calls (Phase A), followed by 10,000 full dispatch + resolve cycles (Phase B). Exercises MinHeap, HashTable, AVLTree, SegmentTree, UnionFind, and Dijkstra end-to-end.
+2. **Road Closure Rerouting** — 10,000 `closeRoad`+`reopenRoad` cycles (20,000 operations in total, each rebuilding the UnionFind) followed by 10,000 dispatch+reroute cycles in a volatile network where roads change between requests.
 3. **Temporal Analytics** — 10,000 operations each on SegmentTree (update + range query), AVLTree (insert + collectRange), HashTable (insert + lookup), and Trie (insert + prefix search). Each structure is measured in isolation.
 
-## Memory
+## Static and Dynamic Analysis
 
-Verified with Valgrind — zero memory leaks, zero errors (see `build/valgrind.log`).
+- **Static analysis:** `cppcheck --enable=all --std=c++11` produces zero errors. Full log at `docs/cppcheck.log`.
+- **Dynamic analysis:** Valgrind's `memcheck` against the benchmark binary reports zero leaks and zero errors across 43,381 heap allocations. Full log at `docs/valgrind.log`.
+
+## Continuous Integration
+
+Every push and pull request to `main` triggers a GitHub Actions workflow (`.github/workflows/ci.yml`) that installs `cmake` and `g++`, configures and builds the project, and runs the full test suite via `run_tests.sh`. A green badge on the repository confirms the current build is clean.
 
 ## Team
 
-| Name | Andrew ID |
-|------|-----------|
-| Kavini Nzau | knzau |
-| Nthabiseng Thema | nthema |
-| Christian Abiyingoma | cabiying |
-| Regis Ndahiro Ngoga | rndahiro |
-
+| Name                 | Andrew ID |
+|----------------------|-----------|
+| Kavini Nzau          | knzau     |
+| Nthabiseng Thema     | nthema    |
+| Christian Abiyingoma | cabiying  |
+| Regis Ndahiro Ngoga  | rndahiro  |
